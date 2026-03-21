@@ -1,4 +1,6 @@
-import React, from 'react';
+"use client";
+
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { AdminLocationPayload, Category } from '@/types';
 import { saveLocation } from '@/services/locations.service';

@@ -186,3 +186,41 @@ export function ArrowLeftIcon(props: PropsType) {
     </svg>
   );
 }
+
+export function LocationIcon(props: PropsType) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={24}
+      height={24}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      {...props}
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M12 2.25a7.75 7.75 0 00-7.75 7.75c0 4.153 3.328 8.122 6.38 10.713a2.12 2.12 0 002.74 0c3.052-2.591 6.38-6.56 6.38-10.713A7.75 7.75 0 0012 2.25zm0 10.5a2.75 2.75 0 110-5.5 2.75 2.75 0 010 5.5z"
+      />
+    </svg>
+  );
+}
+
+export function CategoryIcon(props: PropsType) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={24}
+      height={24}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      {...props}
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M3.25 5A1.75 1.75 0 015 3.25h4A1.75 1.75 0 0110.75 5v4A1.75 1.75 0 019 10.75H5A1.75 1.75 0 013.25 9V5zm6 0a.25.25 0 00-.25-.25H5a.25.25 0 00-.25.25v4c0 .138.112.25.25.25h4a.25.25 0 00.25-.25V5zm4 0A1.75 1.75 0 0115 3.25h4A1.75 1.75 0 0120.75 5v4A1.75 1.75 0 0119 10.75h-4A1.75 1.75 0 0113.25 9V5zm6 0a.25.25 0 00-.25-.25h-4a.25.25 0 00-.25.25v4c0 .138.112.25.25.25h4a.25.25 0 00.25-.25V5zm-12 8A1.75 1.75 0 015 11.25h4A1.75 1.75 0 0110.75 13v4A1.75 1.75 0 019 18.75H5A1.75 1.75 0 013.25 17v-4zm6 0a.25.25 0 00-.25-.25H5a.25.25 0 00-.25.25v4c0 .138.112.25.25.25h4a.25.25 0 00.25-.25v-4zm4 0A1.75 1.75 0 0115 11.25h4A1.75 1.75 0 0120.75 13v4A1.75 1.75 0 0119 18.75h-4A1.75 1.75 0 0113.25 17v-4zm6 0a.25.25 0 00-.25-.25h-4a.25.25 0 00-.25.25v4c0 .138.112.25.25.25h4a.25.25 0 00.25-.25v-4z"
+      />
+    </svg>
+  );
+}
