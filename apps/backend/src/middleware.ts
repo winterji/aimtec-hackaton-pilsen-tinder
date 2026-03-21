@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Zde definujete VŠECHNY domény a porty, které mají mít přístup
-const allowedOrigins = ['http://localhost:3001', 'http://localhost:3002'];
+const allowedOrigins = ['http://localhost:3001', 'http://localhost:3002', 'http://13.51.36.227:3000'];
 
 export function middleware(request: NextRequest) {
   // Zjistíme, odkud požadavek přichází
