@@ -9,9 +9,12 @@ datasource db {
 }
 
 model Category {
-  id     String  @id @default(cuid())
-  name   String  @unique // Např. "kavárna", "park", "památka"
-  places Place[] // Pole míst, která do této kategorie patří
+  id              String  @id // Např. "landmarks", "cafes"
+  name            String  @unique
+  icon            String? // Např. "🏰"
+  description     String? // Např. "Historical gems of Pilsen"
+  number_of_items Int     @default(0)
+  places          Place[]
 }
 
 model Place {
@@ -24,6 +27,10 @@ model Place {
   photoReference  String?
   description     String?
   
+  // Statistiky swipování
+  likesCount      Int      @default(0)
+  dislikesCount   Int      @default(0)
+
   // Relace na kategorii
   categoryId      String?   // Cizí klíč (ID kategorie)
   category        Category? @relation(fields: [categoryId], references: [id])
@@ -36,4 +43,11 @@ model User {
   id       String @id @default(cuid())
   username String @unique
   password String // Hashed password
+}
+
+model SwipeSession {
+  id                String   @id // sessionId z frontendu (UUID)
+  likedLocations    String[] // Pole Google ID
+  dislikedLocations String[] // Pole Google ID
+  createdAt         DateTime @default(now())
 }
