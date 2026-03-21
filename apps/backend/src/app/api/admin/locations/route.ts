@@ -4,6 +4,41 @@ import { verifyToken } from '@/lib/auth';
 import { LocationCreateSchema, formatZodError } from '@/lib/schemas';
 
 /**
+ * GET: Získání seznamu všech lokací z databáze.
+ * Vyžaduje JWT token v hlavičce Authorization.
+ */
+export async function GET(request: NextRequest) {
+  // 1. Ověření administrátora
+  const admin = verifyToken(request);
+  if (!admin) {
+    return NextResponse.json({ error: 'Unauthorized access (missing or invalid token)' }, { status: 401 });
+  }
+
+  try {
+    const places = await prisma.place.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const formattedPlaces = places.map(p => ({
+      id: p.googleId,
+      name: p.name,
+      address: p.address,
+      description: p.description || '',
+      imageUrl: p.photoReference,
+      coordinates: {
+        lat: p.latitude,
+        lng: p.longitude
+      }
+    }));
+
+    return NextResponse.json(formattedPlaces);
+  } catch (error) {
+    console.error('Fetch admin locations error:', error);
+    return NextResponse.json({ error: 'Interní chyba serveru při komunikaci s databází' }, { status: 500 });
+  }
+}
+
+/**
  * POST: Přidá nové místo do databáze (Admin jen).
  * Vyžaduje JWT token v hlavičce Authorization.
  */

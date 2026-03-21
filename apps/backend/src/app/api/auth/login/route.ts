@@ -4,10 +4,15 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { AuthSchema, formatZodError } from '@/lib/schemas';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback_tajne_heslo';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // POST: Přihlášení uživatele
 export async function POST(request: NextRequest) {
+  if (!JWT_SECRET) {
+    console.error('CRITICAL: JWT_SECRET is not defined in environment variables.');
+    return NextResponse.json({ error: 'Server configuration error.' }, { status: 500 });
+  }
+
   try {
     const body = await request.json();
 
@@ -37,11 +42,11 @@ export async function POST(request: NextRequest) {
 
     // 3. Vytvoříme JWT token
     // Do tokenu uložíme id a username (bez hesla!)
-    // Vypršení nastavíme např. na 24 hodin
+    // Vypršení nastavíme na 12 hodin
     const token = jwt.sign(
       { userId: user.id, username: user.username },
       JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: '12h' }
     );
 
     // 4. Vrátíme token a informace o uživateli

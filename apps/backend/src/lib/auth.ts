@@ -1,13 +1,18 @@
 import jwt from 'jsonwebtoken';
 import { NextRequest } from 'next/server';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback_tajne_heslo';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 /**
  * Ověří JWT token z hlavičky Authorization: Bearer <token>
  * @returns Dekódovaný token nebo null, pokud je neplatný
  */
 export function verifyToken(request: NextRequest) {
+  if (!JWT_SECRET) {
+    console.error('CRITICAL: JWT_SECRET is not defined in environment variables.');
+    return null;
+  }
+
   const authHeader = request.headers.get('authorization');
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
