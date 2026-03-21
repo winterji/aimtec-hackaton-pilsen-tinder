@@ -35,6 +35,8 @@ export default function Home() {
   const startX = useRef(0)
   const isDragging = useRef(false)
 
+  const isClickOnButton = useRef(false)
+
   const place = places[index]
 
   // 🔥 CATEGORY DRAG (zůstává jak máš)
@@ -98,6 +100,12 @@ export default function Home() {
   }
 
   const handlePointerUp = (e: React.PointerEvent) => {
+
+    if (isClickOnButton.current) {
+      isClickOnButton.current = false
+      return
+    }
+
     if (!isDragging.current) return
     isDragging.current = false
 
@@ -203,8 +211,12 @@ export default function Home() {
 
                 <div className="actions">
                   <button
+                    onPointerDown={(e) => {
+                      isClickOnButton.current = true
+                      e.stopPropagation()
+                    }}
                     onClick={(e) => {
-                      e.stopPropagation() // 🔥 KLÍČ
+                      e.stopPropagation()
                       console.log('like ❤️')
                     }}
                   >
@@ -213,14 +225,18 @@ export default function Home() {
 
                   <div className="right-actions">
                     <button
+                      onPointerDown={(e) => {
+                        isClickOnButton.current = true
+                        e.stopPropagation()
+                      }}
                       onClick={(e) => {
-                        e.stopPropagation() // 🔥 KLÍČ
+                        e.stopPropagation()
                         setFlipped(true)
+                        console.log('info ℹ️')
                       }}
                     >
                       ℹ️
                     </button>
-                    <button>+</button>
                   </div>
                 </div>
               </div>
