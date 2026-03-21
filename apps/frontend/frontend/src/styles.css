@@ -164,12 +164,9 @@
 
 .card-title {
   padding: 10px 16px;
-
   border-radius: 999px;
 
-  /* 🔥 tmavší glass */
   background: rgba(0, 0, 0, 0.703);
-
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 
@@ -178,8 +175,12 @@
   font-size: 14px;
 
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.569);
-
   border: 1px solid rgba(255,255,255,0.2);
+
+  /* 👇 tohle přidej */
+  user-select: none;
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none;     /* starý Edge */
 }
 
 .card-bottom {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import '../styles.css'
 
 const places = [
@@ -30,34 +30,101 @@ export default function Home() {
   const [flipped, setFlipped] = useState(false)
 
   const [dragX, setDragX] = useState(0)
-  const [isDragging, setIsDragging] = useState(false)
-  const startX = useRef(0)
 
   const sliderRef = useRef<HTMLDivElement | null>(null)
+  const startX = useRef(0)
+  const isDragging = useRef(false)
 
   const place = places[index]
 
-  // 👉 CATEGORY DRAG (zůstává)
-  // (tvůj původní useEffect můžeš nechat – funguje)
+  // 🔥 CATEGORY DRAG (zůstává jak máš)
+  useEffect(() => {
+    const slider = sliderRef.current
+    if (!slider) return
 
-  // 👉 SWIPE LOGIKA (React style)
-  const handleStart = (clientX: number) => {
-    setIsDragging(true)
-    startX.current = clientX
+    let isDown = false
+    let startX = 0
+    let scrollLeft = 0
+
+    const mouseDown = (e: MouseEvent) => {
+      isDown = true
+      slider.classList.add('dragging')
+      startX = e.pageX - slider.offsetLeft
+      scrollLeft = slider.scrollLeft
+    }
+
+    const mouseLeave = () => {
+      isDown = false
+      slider.classList.remove('dragging')
+    }
+
+    const mouseUp = () => {
+      isDown = false
+      slider.classList.remove('dragging')
+    }
+
+    const mouseMove = (e: MouseEvent) => {
+      if (!isDown) return
+      e.preventDefault()
+      const x = e.pageX - slider.offsetLeft
+      const walk = (x - startX) * 1.5
+      slider.scrollLeft = scrollLeft - walk
+    }
+
+    slider.addEventListener('mousedown', mouseDown)
+    slider.addEventListener('mouseleave', mouseLeave)
+    slider.addEventListener('mouseup', mouseUp)
+    slider.addEventListener('mousemove', mouseMove)
+
+    return () => {
+      slider.removeEventListener('mousedown', mouseDown)
+      slider.removeEventListener('mouseleave', mouseLeave)
+      slider.removeEventListener('mouseup', mouseUp)
+      slider.removeEventListener('mousemove', mouseMove)
+    }
+  }, [])
+
+  // 🔥 SWIPE + CLICK LOGIKA
+  const handlePointerDown = (e: React.PointerEvent) => {
+    isDragging.current = true
+    startX.current = e.clientX
   }
 
-  const handleMove = (clientX: number) => {
-    if (!isDragging) return
-    const delta = clientX - startX.current
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDragging.current) return
+
+    const delta = e.clientX - startX.current
     setDragX(delta)
   }
 
-  const handleEnd = () => {
-    setIsDragging(false)
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (!isDragging.current) return
+    isDragging.current = false
 
-    const threshold = 120
+    const delta = e.clientX - startX.current
 
-    if (dragX < -threshold) {
+    const swipeThreshold = 120
+    const clickThreshold = 10
+
+    // 👉 CLICK
+    if (Math.abs(delta) < clickThreshold) {
+      const x = e.clientX
+      const width = window.innerWidth
+
+      if (x < width * 0.3) {
+        setImgIndex((i) => Math.max(i - 1, 0))
+      } else if (x > width * 0.7) {
+        setImgIndex((i) => Math.min(i + 1, place.images.length - 1))
+      } else {
+        setFlipped(true)
+      }
+
+      setDragX(0)
+      return
+    }
+
+    // 👉 SWIPE
+    if (delta < -swipeThreshold) {
       setDragX(-500)
       setTimeout(() => {
         setIndex((i) => Math.min(i + 1, places.length - 1))
@@ -66,7 +133,7 @@ export default function Home() {
         setDragX(0)
       }, 200)
 
-    } else if (dragX > threshold) {
+    } else if (delta > swipeThreshold) {
       setDragX(500)
       setTimeout(() => {
         setIndex((i) => Math.max(i - 1, 0))
@@ -108,35 +175,18 @@ export default function Home() {
           className="card"
           style={{
             transform: `translateX(${dragX}px) rotate(${dragX * 0.05}deg)`,
-            transition: isDragging ? 'none' : 'transform 0.3s ease'
+            transition: isDragging.current ? 'none' : 'transform 0.3s ease'
           }}
-          onMouseDown={(e) => handleStart(e.clientX)}
-          onMouseMove={(e) => handleMove(e.clientX)}
-          onMouseUp={handleEnd}
-          onMouseLeave={handleEnd}
-          onTouchStart={(e) => handleStart(e.touches[0].clientX)}
-          onTouchMove={(e) => handleMove(e.touches[0].clientX)}
-          onTouchEnd={handleEnd}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerLeave={handlePointerUp}
         >
 
           {!flipped && (
             <div
               className="card-front"
               style={{ backgroundImage: `url(${place.images[imgIndex]})` }}
-              onClick={(e) => {
-                if (isDragging) return // 🔥 zabrání konfliktu swipe vs click
-
-                const x = e.clientX
-                const width = window.innerWidth
-
-                if (x < width * 0.3) {
-                  setImgIndex((i) => Math.max(i - 1, 0))
-                } else if (x > width * 0.7) {
-                  setImgIndex((i) => Math.min(i + 1, place.images.length - 1))
-                } else {
-                  setFlipped(true)
-                }
-              }}
             >
               <div className="card-title-wrapper">
                 <div className="card-title">{place.name}</div>
