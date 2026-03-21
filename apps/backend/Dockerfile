@@ -1,6 +1,6 @@
 # 1. Stage: Install dependencies
 FROM node:20.20.1-alpine AS deps
-RUN apk add --no-available --update openssl
+RUN apk add --no-cache --update openssl
 WORKDIR /app
 
 COPY package*.json ./
@@ -11,7 +11,7 @@ RUN npx prisma generate
 
 # 2. Stage: Build the application
 FROM node:20.20.1-alpine AS builder
-RUN apk add --no-available --update openssl
+RUN apk add --no-cache --update openssl
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -21,7 +21,7 @@ RUN npm run build
 
 # 3. Stage: Production runner
 FROM node:20.20.1-alpine AS runner
-RUN apk add --no-available --update openssl
+RUN apk add --no-cache --update openssl
 WORKDIR /app
 
 ENV NODE_ENV production
