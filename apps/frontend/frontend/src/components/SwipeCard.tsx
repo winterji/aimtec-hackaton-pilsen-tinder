@@ -3,6 +3,8 @@ import { useState } from 'react'
 
 export default function SwipeCard({ place, imageIndex, onNext, onPrev, onNextImage, onPrevImage }: any) {
   const [flipped, setFlipped] = useState(false)
+ 
+ 
 
   const handleClick = (e: any) => {
     const x = e.clientX

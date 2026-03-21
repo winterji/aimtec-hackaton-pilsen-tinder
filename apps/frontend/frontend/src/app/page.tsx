@@ -38,6 +38,8 @@ export default function Home() {
 
   const place = places[index]
 
+  
+
   // 👉 CATEGORY DRAG
   useEffect(() => {
     const slider = sliderRef.current
