@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Vytvoříme instanci, která míří na vaši hlavní "Tinder" aplikaci (backend)
 export const api = axios.create({
-  baseURL: 'http://localhost:3000/api', // V produkci to bude např. https://api.plzenswipe.cz/api
+  baseURL: 'http://13.51.36.227:3000/api', // V produkci to bude např. https://api.plzenswipe.cz/api
   headers: {
     'Content-Type': 'application/json',
   },
