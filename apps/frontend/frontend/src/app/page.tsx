@@ -7,6 +7,8 @@ import { getCategories } from "@/services/categories"
 import { getLocations } from "@/services/locations"
 import type { Location } from "@/types/index"
 
+import { useRouter } from 'next/navigation'
+
 type LocationWithImages = Location & {
   images: string[]
 }
@@ -14,7 +16,7 @@ type LocationWithImages = Location & {
 
 export default function Home() {
 
-  
+  const router = useRouter()
 
   const [index, setIndex] = useState(0)
   const [imgIndex, setImgIndex] = useState(0)
@@ -28,7 +30,11 @@ export default function Home() {
   const isClickOnButton = useRef(false)
   const [locations, setLocations] = useState<LocationWithImages[]>([])
 
-  const [favorites, setFavorites] = useState<Location[]>([])
+  const [favorites, setFavorites] = useState<Location[]>(() => {
+    if (typeof window === 'undefined') return []
+    const stored = localStorage.getItem('favorites')
+    return stored ? JSON.parse(stored) : []
+  })
 
   const place = locations[index] || locations[0]
 
@@ -344,7 +350,9 @@ export default function Home() {
       </div>
 
       <div className="bottom-bar">
-        <button>Zobrazit oblíbené lokace</button>
+        <button onClick={() => router.push('/favorites')}>
+          Zobrazit oblíbené lokace
+        </button>
       </div>
 
     </main>
