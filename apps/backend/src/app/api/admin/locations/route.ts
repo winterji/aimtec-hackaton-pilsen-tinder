@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     const places = await prisma.place.findMany({
       orderBy: { createdAt: 'desc' },
-      take: limit && !isNaN(limit) ? limit : undefined
+      take: limit //&& !isNaN(limit) ? limit : undefined
     });
 
     const formattedPlaces = places.map(p => ({
@@ -58,7 +58,6 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    
     // Validace vstupu pomocí Zod
     const validation = LocationCreateSchema.safeParse(body);
     if (!validation.success) {

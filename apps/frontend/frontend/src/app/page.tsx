@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import '../styles.css'
 
 import { getCategories } from "@/services/categories"
+import { TestingComponent } from '@/components/TestingComponent';
 
 
 const places = [
@@ -177,6 +178,8 @@ export default function Home() {
       <div className="top-search">
         <input placeholder="Hledat podnik..." />
       </div>
+
+      <TestingComponent />
 
       <div className="category-wrapper">
         <div className="category-bar" ref={sliderRef}>
