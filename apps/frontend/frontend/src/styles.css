@@ -315,3 +315,8 @@
   }
 }
 
+.active-like {
+  background: #ff4d6d !important;
+  color: white;
+  transform: scale(1.1);
+}

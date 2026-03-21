@@ -60,10 +60,10 @@ export const getLocations = async (categoryId?: string, searchString?: string): 
         {
           id: '4',
           categoryId: 'pamatky2',
-          name: 'Katedrála sv. Bartoloměje',
+          name: 'Katedrála',
           address: 'Náměstí Republiky',
           description: 'Dominanta Plzně',
-          imageUrl: 'https://picsum.photos/500/800?3',
+          imageUrl: 'https://picsum.photos/500/800?4',
           coordinates: {
             lat: 49.7478,
             lng: 13.3775
@@ -71,11 +71,11 @@ export const getLocations = async (categoryId?: string, searchString?: string): 
         },
         {
           id: '5',
-          categoryId: 'pamatky3',
-          name: 'Katedrála sv. Bartoloměje',
+          categoryId: 'kavarny',
+          name: 'sv. Bartoloměje',
           address: 'Náměstí Republiky',
           description: 'Dominanta Plzně',
-          imageUrl: 'https://picsum.photos/500/800?3',
+          imageUrl: 'https://picsum.photos/500/800?5',
           coordinates: {
             lat: 49.7478,
             lng: 13.3775
@@ -83,11 +83,11 @@ export const getLocations = async (categoryId?: string, searchString?: string): 
         },
         {
           id: '6',
-          categoryId: 'pamatky4',
-          name: 'Katedrála sv. Bartoloměje',
+          categoryId: 'kavarny',
+          name: 'oměje',
           address: 'Náměstí Republiky',
           description: 'Dominanta Plzně',
-          imageUrl: 'https://picsum.photos/500/800?3',
+          imageUrl: 'https://picsum.photos/500/800?6',
           coordinates: {
             lat: 49.7478,
             lng: 13.3775

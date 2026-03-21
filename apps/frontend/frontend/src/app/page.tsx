@@ -5,30 +5,17 @@ import '../styles.css'
 
 import { getCategories } from "@/services/categories"
 import { getLocations } from "@/services/locations"
+import type { Location } from "@/types/index"
 
+type LocationWithImages = Location & {
+  images: string[]
+}
 
-const places = [
-  {
-    name: 'Kavárna 1',
-    description: 'Stylová kavárna v centru Plzně',
-    hours: '8:00 - 20:00',
-    images: [
-      'https://picsum.photos/500/800?1',
-      'https://picsum.photos/500/800?2'
-    ]
-  },
-  {
-    name: 'Park 1',
-    description: 'Velký park ideální na relax',
-    hours: 'nonstop',
-    images: [
-      'https://picsum.photos/500/800?3',
-      'https://picsum.photos/500/800?4'
-    ]
-  }
-]
 
 export default function Home() {
+
+  
+
   const [index, setIndex] = useState(0)
   const [imgIndex, setImgIndex] = useState(0)
   const [flipped, setFlipped] = useState(false)
@@ -39,10 +26,63 @@ export default function Home() {
   const startX = useRef(0)
   const isDragging = useRef(false)
   const isClickOnButton = useRef(false)
+  const [locations, setLocations] = useState<LocationWithImages[]>([])
 
-  const place = places[index]
+  const [favorites, setFavorites] = useState<Location[]>([])
+
+  const place = locations[index] || locations[0]
+
+  
+
+  const isFavorite = place
+  ? favorites.some((l) => l.id === place.id)
+  : false
+
+  
+
+  
 
   const [categories, setCategories] = useState<any[]>([])
+
+  
+
+  useEffect(() => {
+    const stored = localStorage.getItem('favorites')
+    if (stored) {
+      setFavorites(JSON.parse(stored))
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('favorites', JSON.stringify(favorites))
+  }, [favorites])
+
+  useEffect(() => {
+    const loadLocations = async () => {
+      try {
+        console.log("🚀 fetch start")
+
+        const data = await getLocations("kavarny")
+        console.log("📦 raw data:", data)
+
+        const mapped = data.map((loc) => ({
+          ...loc,
+          images: [loc.imageUrl]
+        }))
+
+        console.log("✅ mapped:", mapped)
+
+        setLocations(mapped)
+
+      } catch (err) {
+        console.error("❌ ERROR:", err)
+      }
+    }
+
+    loadLocations()
+  }, [])
+
+  
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -105,6 +145,8 @@ export default function Home() {
     }
   }, [])
 
+  
+
   // 👉 SWIPE + CLICK
   const handlePointerDown = (e: React.PointerEvent) => {
     isDragging.current = true
@@ -152,7 +194,7 @@ export default function Home() {
     if (delta < -swipeThreshold) {
       setDragX(-500)
       setTimeout(() => {
-        setIndex((i) => Math.min(i + 1, places.length - 1))
+        setIndex((i) => Math.min(i + 1, locations.length - 1))
         setImgIndex(0)
         setFlipped(false)
         setDragX(0)
@@ -172,6 +214,23 @@ export default function Home() {
     }
   }
 
+  
+
+
+  const toggleFavorite = (location: Location) => {
+    setFavorites((prev) => {
+      const exists = prev.find((l) => l.id === location.id)
+
+      if (exists) {
+        return prev.filter((l) => l.id !== location.id)
+      } else {
+        return [...prev, location]
+      }
+    })
+  }
+
+  
+
   return (
     <main className="app-container">
 
@@ -190,90 +249,102 @@ export default function Home() {
       </div>
 
       <div className="card-wrapper">
-        <div
-          className="card"
-          style={{
-            transform: `translateX(${dragX}px) rotate(${dragX * 0.05}deg)`,
-            transition: isDragging.current ? 'none' : 'transform 0.3s ease'
-          }}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerLeave={handlePointerUp}
-        >
-
+        {locations.length === 0 ? (
+          <div style={{ padding: 20 }}>Načítám...</div>
+        ) : (
           <div
-            className="card-front"
-            style={{ backgroundImage: `url(${place.images[imgIndex]})` }}
+            className="card"
+            style={{
+              transform: `translateX(${dragX}px) rotate(${dragX * 0.05}deg)`,
+              transition: isDragging.current ? 'none' : 'transform 0.3s ease'
+            }}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerLeave={handlePointerUp}
           >
 
-            {/* TITLE */}
-            <div className="card-title-wrapper">
-              <div className="card-title">{place.name}</div>
-            </div>
+            <div
+              className="card-front"
+              style={{ backgroundImage: `url(${place.images[imgIndex]})` }}
+            >
 
-            {/* 👉 INFO OVERLAY */}
-            {flipped && (
-              <div
-                className="info-overlay"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setFlipped(false)
-                }}
-              >
-                <div className="info-content">
-                  <h2>{place.name}</h2>
-                  <p>{place.description}</p>
-                  <p>{place.hours}</p>
-                </div>
-              </div>
-            )}
-
-            {/* BOTTOM */}
-            <div className="card-bottom">
-              <div className="dots">
-                {place.images.map((_, i) => (
-                  <div key={i} className={`dot ${i === imgIndex ? 'active' : ''}`} />
-                ))}
+              {/* TITLE */}
+              <div className="card-title-wrapper">
+                <div className="card-title">{place.name}</div>
               </div>
 
-              <div className="actions">
-                <button
-                  onPointerDown={(e) => {
-                    isClickOnButton.current = true
-                    e.stopPropagation()
-                  }}
+              {/* 👉 INFO OVERLAY */}
+              {flipped && (
+                <div
+                  className="info-overlay"
                   onClick={(e) => {
                     e.stopPropagation()
-                    console.log('like ❤️')
+                    setFlipped(false)
                   }}
                 >
-                  ❤️
-                </button>
+                  <div className="info-content">
+                    <h2>{place.name}</h2>
+                    <p>{place.description}</p>
+                    <p>{place.address}</p>
+                  </div>
+                </div>
+              )}
 
-                <div className="right-actions">
+              {/* BOTTOM */}
+              <div className="card-bottom">
+                <div className="dots">
+                  {place.images.length > 1 && (
+                    <div className="dots">
+                      {place.images.map((_, i) => (
+                        <div
+                          key={i}
+                          className={`dot ${i === imgIndex ? 'active' : ''}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="actions">
                   <button
+                    className={isFavorite ? 'active-like' : ''}
                     onPointerDown={(e) => {
                       isClickOnButton.current = true
                       e.stopPropagation()
                     }}
                     onClick={(e) => {
                       e.stopPropagation()
-                      setFlipped(true)
+                      toggleFavorite(place)
                     }}
                   >
-                    ℹ️
+                    ❤️
                   </button>
+
+                  <div className="right-actions">
+                    <button
+                      onPointerDown={(e) => {
+                        isClickOnButton.current = true
+                        e.stopPropagation()
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setFlipped(true)
+                      }}
+                    >
+                      ℹ️
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
 
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="bottom-bar">
-        <button>+ Přidat do tripu</button>
+        <button>Zobrazit oblíbené lokace</button>
       </div>
 
     </main>
