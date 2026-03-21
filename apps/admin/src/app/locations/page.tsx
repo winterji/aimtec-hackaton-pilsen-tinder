@@ -65,7 +65,7 @@ export default function LocationsPage() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fotka</th>
+                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fotka</th> */}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Název</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategorie</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Popis</th>
@@ -88,15 +88,15 @@ export default function LocationsPage() {
               ) : (
                 locations.map((loc) => (
                   <tr key={loc.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    {/* <td className="px-6 py-4 whitespace-nowrap"> */}
                       {/* Zobrazení miniatury fotky */}
-                      <img 
-                        src={loc.imageUrl} 
+                      {/* <img 
+                        src={await getPhoto(loc.imageUrl)}
                         alt={loc.name} 
                         className="h-10 w-10 rounded-md object-cover border border-gray-200"
                         onError={(e) => (e.currentTarget.src = 'https://via.placeholder.com/40?text=Bez+fotky')}
-                      />
-                    </td>
+                      /> */}
+                    {/* </td> */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="font-medium text-gray-900">{loc.name}</div>
                       <div className="text-xs text-gray-500">{loc.id}</div>
