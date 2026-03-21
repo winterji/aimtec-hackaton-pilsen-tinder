@@ -1,0 +1,247 @@
+.app-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #ffffff 0%, #f7f7f9 100%);
+  color: black;
+  font-family: system-ui, sans-serif;
+}
+
+.top-search {
+  padding: 12px;
+}
+
+.top-search input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 14px;
+  border: none;
+  background: #f1f1f4;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.category-wrapper {
+  width: 100%;
+  overflow: hidden;
+}
+
+
+.category-bar {
+  overflow-x: auto;
+  overflow-y: hidden;
+  cursor: grab;
+}
+
+
+.category-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.category-bar button {
+  flex: 0 0 auto; /* 🔥 zabrání zmenšování */
+  min-width: max-content; /* 🔥 každé tlačítko si drží šířku */
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: none;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.category-bar button:hover {
+  transform: scale(1.05);
+}
+
+.category-bar button.active {
+  background: #ff4d6d;
+  color: white;
+  box-shadow: 0 6px 16px rgba(255,77,109,0.3);
+}
+
+.category-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.category-bar button {
+  flex: 0 0 auto;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: none;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.category-bar button:hover {
+  transform: scale(1.05);
+}
+
+.category-bar button.active {
+  background: #ff4d6d;
+  color: white;
+  box-shadow: 0 6px 16px rgba(255,77,109,0.3);
+}
+
+.category-bar.dragging {
+  cursor: grabbing;
+}
+
+.category-inner button {
+  flex: 0 0 auto;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: none;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  white-space: nowrap;
+}
+
+.category-inner {
+  display: flex;
+  gap: 10px;
+  width: max-content; /* 🔥 způsobí overflow */
+  padding: 0 12px 10px;
+}
+
+.category-bar button {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: none;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  font-weight: 500;
+}
+
+.card-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.card {
+  width: 90%;
+  max-width: 400px;
+  height: 70vh;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+  position: relative;
+  transition: transform 0.3s ease;
+}
+
+.card:hover {
+  transform: scale(1.01);
+}
+
+.card-front {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-title {
+  padding: 16px;
+  font-weight: 600;
+  font-size: 18px;
+  backdrop-filter: blur(6px);
+  background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+  color: white;
+}
+
+.card-bottom {
+  padding: 14px;
+  background: linear-gradient(to top, rgba(0,0,0,0.75), transparent);
+}
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.dot {
+  width: 16px;
+  height: 4px;
+  background: rgba(255,255,255,0.4);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.dot.active {
+  width: 28px;
+  background: white;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.actions button {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.9);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  transition: all 0.2s ease;
+}
+
+.actions button:hover {
+  transform: scale(1.1);
+}
+
+.right-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.right-actions button:last-child {
+  background: #ff4d6d;
+  color: white;
+}
+
+.card-back {
+  width: 100%;
+  height: 100%;
+  background: white;
+  padding: 20px;
+}
+
+.nav-zones {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+
+.nav-zones div {
+  width: 50%;
+}
+
+.bottom-bar {
+  padding: 18px;
+  display: flex;
+  justify-content: center;
+}
+
+.bottom-bar button {
+  padding: 12px 24px;
+  border-radius: 999px;
+  border: none;
+  background: #ff4d6d;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(255,77,109,0.3);
+}
