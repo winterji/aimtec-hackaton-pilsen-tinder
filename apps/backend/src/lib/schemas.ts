@@ -5,7 +5,7 @@ import { z } from 'zod';
  */
 export const AuthSchema = z.object({
   username: z.string().min(3, "Uživatelské jméno musí mít aspoň 3 znaky").max(30),
-  password: z.string().min(6, "Heslo musí mít aspoň 6 znaků"),
+  password: z.string().min(5, "Heslo musí mít aspoň 5 znaků"),
 });
 
 /**
@@ -44,10 +44,10 @@ export const SwipeResultsSchema = z.object({
 /**
  * Pomocná funkce pro formátování Zod chyb do čitelného JSONu
  */
-export function formatZodError(error: z.ZodError) {
+export function formatZodError(error: z.ZodError<unknown>) {
   return {
     error: 'Chyba validace dat',
-    details: error.errors.map(err => ({
+    details: error.issues.map(err => ({
       path: err.path.join('.'),
       message: err.message
     }))
