@@ -25,9 +25,16 @@ export async function POST(request: NextRequest) {
 
     const { id, name, icon, number_of_items, description } = validation.data;
 
-    // 2. Vytvoření kategorie v DB
-    const newCategory = await prisma.category.create({
-      data: {
+    // 2. Vytvoření nebo aktualizace kategorie v DB
+    const category = await prisma.category.upsert({
+      where: { id },
+      update: {
+        name,
+        icon,
+        description,
+        number_of_items
+      },
+      create: {
         id,
         name,
         icon,
@@ -37,16 +44,12 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ 
-      message: 'Category successfully created',
-      category: newCategory 
-    }, { status: 201 });
+      message: 'Category successfully processed',
+      category: category 
+    }, { status: 200 });
 
   } catch (error: any) {
-    // Pokud kategorie s tímto ID nebo názvem už existuje
-    if (error.code === 'P2002') {
-      return NextResponse.json({ error: 'Kategorie s tímto ID nebo názvem již existuje.' }, { status: 400 });
-    }
-    console.error('Create admin category error:', error);
-    return NextResponse.json({ error: 'Chyba při vytváření kategorie.' }, { status: 500 });
+    console.error('Process admin category error:', error);
+    return NextResponse.json({ error: 'Chyba při ukládání kategorie.' }, { status: 500 });
   }
 }
