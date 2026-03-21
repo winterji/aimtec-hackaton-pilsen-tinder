@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
       address: p.address,
       description: p.description || '',
       imageUrl: p.photoReference,
+      categoryId: p.categoryId, // <--- Přidáno ID kategorie
       coordinates: {
         lat: p.latitude,
         lng: p.longitude
