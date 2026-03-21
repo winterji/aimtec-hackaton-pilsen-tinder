@@ -6,20 +6,25 @@ import {
   DropdownContent,
   DropdownTrigger,
 } from "@/components/ui/dropdown";
+import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { LogOutIcon, SettingsIcon, UserIcon } from "./icons";
 
 export function UserInfo() {
   const [isOpen, setIsOpen] = useState(false);
+  const user = useAuth();
+  const router = useRouter();
 
-  const USER = {
-    name: "John Smith",
-    email: "johnson@nextadmin.com",
-    img: "/images/user/user-03.png",
-  };
+  const username = user?.username ?? "Admin";
+
+  function handleLogout() {
+    localStorage.removeItem("adminToken");
+    router.push("/auth/sign-in");
+  }
 
   return (
     <Dropdown isOpen={isOpen} setIsOpen={setIsOpen}>
@@ -28,15 +33,15 @@ export function UserInfo() {
 
         <figure className="flex items-center gap-3">
           <Image
-            src={USER.img}
+            src="/images/user/user-03.png"
             className="size-12"
-            alt={`Avatar of ${USER.name}`}
+            alt={`Avatar of ${username}`}
             role="presentation"
             width={200}
             height={200}
           />
           <figcaption className="flex items-center gap-1 font-medium text-dark dark:text-dark-6 max-[1024px]:sr-only">
-            <span>{USER.name}</span>
+            <span>{username}</span>
 
             <ChevronUpIcon
               aria-hidden
@@ -58,9 +63,9 @@ export function UserInfo() {
 
         <figure className="flex items-center gap-2.5 px-5 py-3.5">
           <Image
-            src={USER.img}
+            src="/images/user/user-03.png"
             className="size-12"
-            alt={`Avatar for ${USER.name}`}
+            alt={`Avatar for ${username}`}
             role="presentation"
             width={200}
             height={200}
@@ -68,10 +73,10 @@ export function UserInfo() {
 
           <figcaption className="space-y-1 text-base font-medium">
             <div className="mb-2 leading-none text-dark dark:text-white">
-              {USER.name}
+              {username}
             </div>
 
-            <div className="leading-none text-gray-6">{USER.email}</div>
+            <div className="leading-none text-gray-6">Administrator</div>
           </figcaption>
         </figure>
 
@@ -106,7 +111,7 @@ export function UserInfo() {
         <div className="p-2 text-base text-[#4B5563] dark:text-dark-6">
           <button
             className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-[9px] hover:bg-gray-2 hover:text-dark dark:hover:bg-dark-3 dark:hover:text-white"
-            onClick={() => setIsOpen(false)}
+            onClick={handleLogout}
           >
             <LogOutIcon />
 
@@ -117,3 +122,4 @@ export function UserInfo() {
     </Dropdown>
   );
 }
+
