@@ -133,6 +133,13 @@
   box-shadow: 0 20px 60px rgba(0,0,0,0.12);
   position: relative;
   transition: transform 0.3s ease;
+  will-change: transform;
+  cursor: grab;
+  touch-action: pan-y; /* 🔥 důležité pro mobil */
+}
+
+.card:active {
+  cursor: grabbing;
 }
 
 .card:hover {
@@ -157,12 +164,9 @@
 
 .card-title {
   padding: 10px 16px;
-
   border-radius: 999px;
 
-  /* 🔥 tmavší glass */
   background: rgba(0, 0, 0, 0.703);
-
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 
@@ -171,8 +175,12 @@
   font-size: 14px;
 
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.569);
-
   border: 1px solid rgba(255,255,255,0.2);
+
+  /* 👇 tohle přidej */
+  user-select: none;
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none;     /* starý Edge */
 }
 
 .card-bottom {
@@ -241,10 +249,12 @@
   position: absolute;
   inset: 0;
   display: flex;
+  pointer-events: none;
 }
 
 .nav-zones div {
   width: 50%;
+  pointer-events: auto;
 }
 
 .bottom-bar {
@@ -262,3 +272,46 @@
   font-weight: 600;
   box-shadow: 0 10px 30px rgba(255,77,109,0.3);
 }
+
+
+.info-overlay {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: rgba(0,0,0,0.4);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  animation: fadeIn 0.25s ease;
+}
+
+.info-content {
+  color: white;
+  text-align: center;
+  padding: 20px;
+  max-width: 80%;
+
+  background: rgba(255,255,255,0.1);
+  border-radius: 20px;
+
+  backdrop-filter: blur(10px);
+
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(12px);
+  }
+}
+

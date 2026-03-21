@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import '../styles.css'
 
+
 const places = [
   {
     name: 'Kavárna 1',
@@ -29,12 +30,18 @@ export default function Home() {
   const [imgIndex, setImgIndex] = useState(0)
   const [flipped, setFlipped] = useState(false)
 
-  // 🔥 CHYBĚLO → ref
+  const [dragX, setDragX] = useState(0)
+
   const sliderRef = useRef<HTMLDivElement | null>(null)
+  const startX = useRef(0)
+  const isDragging = useRef(false)
+  const isClickOnButton = useRef(false)
 
   const place = places[index]
 
-  // 🔥 DRAG SCROLL
+  
+
+  // 👉 CATEGORY DRAG
   useEffect(() => {
     const slider = sliderRef.current
     if (!slider) return
@@ -81,21 +88,86 @@ export default function Home() {
     }
   }, [])
 
+  // 👉 SWIPE + CLICK
+  const handlePointerDown = (e: React.PointerEvent) => {
+    isDragging.current = true
+    startX.current = e.clientX
+  }
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDragging.current) return
+    const delta = e.clientX - startX.current
+    setDragX(delta)
+  }
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+
+    if (isClickOnButton.current) {
+      isClickOnButton.current = false
+      return
+    }
+
+    if (!isDragging.current) return
+    isDragging.current = false
+
+    const delta = e.clientX - startX.current
+
+    const swipeThreshold = 120
+    const clickThreshold = 10
+
+    // 👉 CLICK
+    if (Math.abs(delta) < clickThreshold) {
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+      const x = e.clientX - rect.left
+      const width = rect.width
+
+      if (x < width * 0.5) {
+        setImgIndex((i) => (i - 1 + place.images.length) % place.images.length)
+      } else {
+        setImgIndex((i) => (i + 1) % place.images.length)
+      }
+
+      setDragX(0)
+      return
+    }
+
+    // 👉 SWIPE
+    if (delta < -swipeThreshold) {
+      setDragX(-500)
+      setTimeout(() => {
+        setIndex((i) => Math.min(i + 1, places.length - 1))
+        setImgIndex(0)
+        setFlipped(false)
+        setDragX(0)
+      }, 200)
+
+    } else if (delta > swipeThreshold) {
+      setDragX(500)
+      setTimeout(() => {
+        setIndex((i) => Math.max(i - 1, 0))
+        setImgIndex(0)
+        setFlipped(false)
+        setDragX(0)
+      }, 200)
+
+    } else {
+      setDragX(0)
+    }
+  }
+
   return (
     <main className="app-container">
 
-      {/* TOP SEARCH */}
       <div className="top-search">
         <input placeholder="Hledat podnik..." />
       </div>
 
-      {/* CATEGORY BAR */}
       <div className="category-wrapper">
         <div className="category-bar" ref={sliderRef}>
           <div className="category-inner">
             {[
               'Kavárny','Parky','Restaurace','Restaurace2',
-              'Restaurace3','Restaurace4','Restaurace5','Další','Další2'
+              'Restaurace3','Restaurace4','Restaurace5'
             ].map((c) => (
               <button key={c}>{c}</button>
             ))}
@@ -103,78 +175,89 @@ export default function Home() {
         </div>
       </div>
 
-      {/* CARD */}
       <div className="card-wrapper">
-        <div className="card">
+        <div
+          className="card"
+          style={{
+            transform: `translateX(${dragX}px) rotate(${dragX * 0.05}deg)`,
+            transition: isDragging.current ? 'none' : 'transform 0.3s ease'
+          }}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerLeave={handlePointerUp}
+        >
 
-          {!flipped && (
-            <div
-              className="card-front"
-              style={{ backgroundImage: `url(${place.images[imgIndex]})` }}
-              onClick={(e) => {
-                const x = e.clientX
-                const width = window.innerWidth
+          <div
+            className="card-front"
+            style={{ backgroundImage: `url(${place.images[imgIndex]})` }}
+          >
 
-                if (x < width * 0.3) {
-                  setImgIndex((i) => Math.max(i - 1, 0))
-                } else if (x > width * 0.7) {
-                  setImgIndex((i) => Math.min(i + 1, place.images.length - 1))
-                } else {
-                  setFlipped(true)
-                }
-              }}
-            >
-              <div className="card-title-wrapper">
-                <div className="card-title">
-                  {place.name}
+            {/* TITLE */}
+            <div className="card-title-wrapper">
+              <div className="card-title">{place.name}</div>
+            </div>
+
+            {/* 👉 INFO OVERLAY */}
+            {flipped && (
+              <div
+                className="info-overlay"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setFlipped(false)
+                }}
+              >
+                <div className="info-content">
+                  <h2>{place.name}</h2>
+                  <p>{place.description}</p>
+                  <p>{place.hours}</p>
                 </div>
               </div>
+            )}
 
-              <div className="card-bottom">
-                <div className="dots">
-                  {place.images.map((_, i) => (
-                    <div key={i} className={`dot ${i === imgIndex ? 'active' : ''}`} />
-                  ))}
-                </div>
+            {/* BOTTOM */}
+            <div className="card-bottom">
+              <div className="dots">
+                {place.images.map((_, i) => (
+                  <div key={i} className={`dot ${i === imgIndex ? 'active' : ''}`} />
+                ))}
+              </div>
 
-                <div className="actions">
-                  <button>❤️</button>
+              <div className="actions">
+                <button
+                  onPointerDown={(e) => {
+                    isClickOnButton.current = true
+                    e.stopPropagation()
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    console.log('like ❤️')
+                  }}
+                >
+                  ❤️
+                </button>
 
-                  <div className="right-actions">
-                    <button onClick={() => setFlipped(true)}>ℹ️</button>
-                    <button>+</button>
-                  </div>
+                <div className="right-actions">
+                  <button
+                    onPointerDown={(e) => {
+                      isClickOnButton.current = true
+                      e.stopPropagation()
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setFlipped(true)
+                    }}
+                  >
+                    ℹ️
+                  </button>
                 </div>
               </div>
             </div>
-          )}
 
-          {flipped && (
-            <div className="card-back" onClick={() => setFlipped(false)}>
-              <h2>{place.name}</h2>
-              <p>{place.description}</p>
-              <p>{place.hours}</p>
-            </div>
-          )}
-
-        </div>
-
-        {/* NAV */}
-        <div className="nav-zones">
-          <div onClick={() => {
-            setIndex((i) => Math.max(i - 1, 0))
-            setImgIndex(0)
-            setFlipped(false)
-          }} />
-          <div onClick={() => {
-            setIndex((i) => Math.min(i + 1, places.length - 1))
-            setImgIndex(0)
-            setFlipped(false)
-          }} />
+          </div>
         </div>
       </div>
 
-      {/* BOTTOM */}
       <div className="bottom-bar">
         <button>+ Přidat do tripu</button>
       </div>
