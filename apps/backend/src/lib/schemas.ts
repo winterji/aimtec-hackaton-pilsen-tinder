@@ -47,7 +47,7 @@ export const SwipeResultsSchema = z.object({
 export function formatZodError(error: z.ZodError) {
   return {
     error: 'Chyba validace dat',
-    details: error.errors.map(err => ({
+    details: error.issues.map(err => ({
       path: err.path.join('.'),
       message: err.message
     }))

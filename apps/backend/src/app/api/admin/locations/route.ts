@@ -15,8 +15,14 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // Čtení limitu z URL parametrů (?limit=10)
+    const { searchParams } = new URL(request.url);
+    const limitParam = searchParams.get('limit');
+    const limit = limitParam ? parseInt(limitParam, 10) : undefined;
+
     const places = await prisma.place.findMany({
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      take: limit && !isNaN(limit) ? limit : undefined
     });
 
     const formattedPlaces = places.map(p => ({
