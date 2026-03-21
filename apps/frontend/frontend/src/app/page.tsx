@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from 'react'
 import '../styles.css'
 
+import { getCategories } from "@/services/categories"
+
 
 const places = [
   {
@@ -39,6 +41,20 @@ export default function Home() {
 
   const place = places[index]
 
+  const [categories, setCategories] = useState<any[]>([])
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const data = await getCategories()
+        setCategories(data)
+      } catch (err) {
+        console.error('Chyba při načítání kategorií:', err)
+      }
+    }
+
+    loadCategories()
+  }, [])
   
 
   // 👉 CATEGORY DRAG
@@ -165,11 +181,8 @@ export default function Home() {
       <div className="category-wrapper">
         <div className="category-bar" ref={sliderRef}>
           <div className="category-inner">
-            {[
-              'Kavárny','Parky','Restaurace','Restaurace2',
-              'Restaurace3','Restaurace4','Restaurace5'
-            ].map((c) => (
-              <button key={c}>{c}</button>
+            {categories.map((c) => (
+              <button key={c.id}>{c.name}</button>
             ))}
           </div>
         </div>

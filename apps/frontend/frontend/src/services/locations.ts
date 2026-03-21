@@ -29,9 +29,3 @@ export const getLocations = async (categoryId?: string, searchString?: string): 
 //   return response.data;
 // };
 
-/**
- * Smaže lokaci (vyžaduje admin práva/token v interceptoru)
- */
-export const deleteLocation = async (id: string): Promise<void> => {
-  await api.delete(`/admin/locations/${id}`);
-};
