@@ -1,7 +1,19 @@
-import { url } from "inspector";
+import type React from "react";
 import * as Icons from "../icons";
 
-export const NAV_DATA = [
+type NavItem = {
+  title: string;
+  url?: string;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  items: { title: string; url: string }[];
+};
+
+type NavSection = {
+  label: string;
+  items: NavItem[];
+};
+
+export const NAV_DATA: NavSection[] = [
   {
     label: "MAIN MENU",
     items: [

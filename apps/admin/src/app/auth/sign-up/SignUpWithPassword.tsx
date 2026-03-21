@@ -3,9 +3,9 @@ import { PasswordIcon } from "@/assets/icons";
 import { api } from "@/services/api";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import InputGroup from "../FormElements/InputGroup";
+import InputGroup from "@/components/FormElements/InputGroup";
 
-export default function SigninWithPassword() {
+export default function SignUpWithPassword() {
   const [data, setData] = useState({
     username: "",
     password: "",
@@ -28,16 +28,15 @@ export default function SigninWithPassword() {
     setError(null);
 
     try {
-      const response = await api.post("/auth/login", {
+      await api.post("/auth/register", {
         username: data.username,
         password: data.password,
       });
 
-      localStorage.setItem("adminToken", response.data.token);
-      router.push("/");
+      router.push("/auth/sign-in");
     } catch (err: unknown) {
       const axiosError = err as { response?: { data?: { error?: string } } };
-      setError(axiosError.response?.data?.error || "Login failed.");
+      setError(axiosError.response?.data?.error || "Registration failed.");
     } finally {
       setLoading(false);
     }
@@ -79,7 +78,7 @@ export default function SigninWithPassword() {
           type="submit"
           className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary p-4 font-medium text-white transition hover:bg-opacity-90"
         >
-          Sign In
+          Sign Up
           {loading && (
             <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-white border-t-transparent dark:border-primary dark:border-t-transparent" />
           )}
@@ -88,3 +87,4 @@ export default function SigninWithPassword() {
     </form>
   );
 }
+
