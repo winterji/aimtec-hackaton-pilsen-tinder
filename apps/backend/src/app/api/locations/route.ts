@@ -2,49 +2,96 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import crypto from 'crypto';
 
+const MAX_CACHE_DAYS = 30;
+
 /**
- * GET: Vrátí seznam míst pro swipování (buď podle kategorie, nebo vyhledávání v Google).
- * Parametry: categoryId (DB) NEBO searchString (Google)
+ * Pomocná funkce pro osvěžení dat jednoho místa z Google Places API.
+ */
+async function refreshPlaceFromGoogle(googleId: string, apiKey: string) {
+  try {
+    const response = await fetch(`https://places.googleapis.com/v1/places/${googleId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': apiKey,
+        // Požadujeme pole, která ukládáme
+        'X-Goog-FieldMask': 'id,displayName,formattedAddress,location,photos', 
+      },
+    });
+
+    if (!response.ok) return null;
+    const place = await response.json();
+
+    // Aktualizujeme data v naší DB
+    return await prisma.place.update({
+      where: { googleId },
+      data: {
+        name: place.displayName?.text || 'Neznámý název',
+        address: place.formattedAddress,
+        latitude: place.location?.latitude || 0,
+        longitude: place.location?.longitude || 0,
+        photoReference: place.photos?.[0]?.name || null,
+        // updatedAt se díky Prisma @updatedAt automaticky nastaví na "teď"
+      }
+    });
+  } catch (error) {
+    console.error(`Chyba při osvěžování místa ${googleId}:`, error);
+    return null;
+  }
+}
+
+/**
+ * GET: Vrátí seznam míst pro swipování.
+ * Implementuje 30denní politiku Google Maps (automatické osvěžení starých dat).
  */
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const categoryId = searchParams.get('categoryId');
   const searchString = searchParams.get('searchString');
 
-  // 1. Validace parametrů (musí být buď jeden, nebo druhý)
   if ((!categoryId && !searchString) || (categoryId && searchString)) {
     return NextResponse.json({ 
-      error: 'You must provide EITHER categoryId OR searchString. If neither or both are provided, the server will return a 400 Bad Request.' 
+      error: 'You must provide EITHER categoryId OR searchString.' 
     }, { status: 400 });
   }
 
-  const sessionId = crypto.randomUUID(); // Vygenerujeme ID pro tuto session
-  let locations: any[] = [];
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY || '';
+  const sessionId = crypto.randomUUID();
+  let finalLocations: any[] = [];
 
   try {
-    // A) Vyhledávání v naší DB (podle kategorie)
+    // A) Načtení z naší DB podle kategorie (s kontrolou stáří dat)
     if (categoryId) {
       const dbPlaces = await prisma.place.findMany({
         where: { categoryId },
         orderBy: { createdAt: 'desc' }
       });
 
-      locations = dbPlaces.map(p => ({
-        id: p.googleId, // Používáme Google ID jako identifikátor pro frontend
+      const now = new Date();
+      const thirtyDaysAgo = new Date(now.getTime() - (MAX_CACHE_DAYS * 24 * 60 * 60 * 1000));
+
+      // Kontrola a případné osvěžení každého místa
+      const refreshedPlaces = await Promise.all(dbPlaces.map(async (p) => {
+        if (p.updatedAt < thirtyDaysAgo && apiKey) {
+          // Data jsou starší než 30 dní -> Refresh z Google
+          const refreshed = await refreshPlaceFromGoogle(p.googleId, apiKey);
+          return refreshed || p; // Pokud refresh selže, vrátíme aspoň stará data
+        }
+        return p;
+      }));
+
+      finalLocations = refreshedPlaces.map(p => ({
+        id: p.googleId,
         name: p.name,
         address: p.address,
         description: p.description || '',
         imageUrl: p.photoReference ? `/api/photos?googleRef=${p.photoReference}` : null,
-        coordinates: {
-          lat: p.latitude,
-          lng: p.longitude
-        }
+        coordinates: { lat: p.latitude, lng: p.longitude }
       }));
     }
 
-    // B) Vyhledávání v Google API (podle searchString)
+    // B) Vyhledávání v Google API (vždy čerstvá data)
     if (searchString) {
-      const apiKey = process.env.GOOGLE_PLACES_API_KEY;
       if (!apiKey || apiKey === 'TVUJ_API_KLIC_ZDE') {
         return NextResponse.json({ error: 'Google Places API klíč není nastaven.' }, { status: 500 });
       }
@@ -56,36 +103,55 @@ export async function GET(request: NextRequest) {
           'X-Goog-Api-Key': apiKey,
           'X-Goog-FieldMask': 'places.id,places.displayName,places.location,places.photos,places.formattedAddress', 
         },
-        body: JSON.stringify({
-          textQuery: searchString,
-          languageCode: 'cs',
-        }),
+        body: JSON.stringify({ textQuery: searchString, languageCode: 'cs' }),
       });
 
       const data = await response.json();
       if (!response.ok) throw new Error('Google API Error');
 
-      locations = data.places?.map((place: any) => ({
+      const googlePlaces = data.places || [];
+
+      // Automatické uložení/aktualizace nalezených míst (vždy čerstvé -> reset 30denního limitu)
+      for (const place of googlePlaces) {
+        await prisma.place.upsert({
+          where: { googleId: place.id },
+          update: {
+            name: place.displayName?.text || 'Neznámý název',
+            address: place.formattedAddress,
+            latitude: place.location?.latitude || 0,
+            longitude: place.location?.longitude || 0,
+            photoReference: place.photos?.[0]?.name || null,
+          },
+          create: {
+            googleId: place.id,
+            name: place.displayName?.text || 'Neznámý název',
+            address: place.formattedAddress,
+            latitude: place.location?.latitude || 0,
+            longitude: place.location?.longitude || 0,
+            photoReference: place.photos?.[0]?.name || null,
+            categoryId: null,
+            description: ''
+          }
+        });
+      }
+
+      finalLocations = googlePlaces.map((place: any) => ({
         id: place.id,
         name: place.displayName?.text || 'Neznámý název',
         address: place.formattedAddress,
-        description: '', // Google Text Search (Basic) nevrací popis místa, musel by se volat Place Details
+        description: '',
         imageUrl: place.photos?.[0]?.name ? `/api/photos?googleRef=${place.photos[0].name}` : null,
-        coordinates: {
-          lat: place.location?.latitude,
-          lng: place.location?.longitude
-        }
-      })) || [];
+        coordinates: { lat: place.location?.latitude, lng: place.location?.longitude }
+      }));
     }
 
-    // Odpověď musí být pole s jedním objektem dle vašeho schématu (session_id a locations)
     return NextResponse.json([{
       session_id: sessionId,
-      locations: locations
+      locations: finalLocations
     }]);
 
   } catch (error) {
     console.error('Fetch locations error:', error);
-    return NextResponse.json({ error: 'Interní chyba při získávání lokací.' }, { status: 500 });
+    return NextResponse.json({ error: 'Interní chyba serveru.' }, { status: 500 });
   }
 }
