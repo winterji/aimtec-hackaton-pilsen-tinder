@@ -108,15 +108,17 @@ export default function Home() {
 
     // 👉 CLICK
     if (Math.abs(delta) < clickThreshold) {
-      const x = e.clientX
-      const width = window.innerWidth
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
 
-      if (x < width * 0.3) {
-        setImgIndex((i) => Math.max(i - 1, 0))
-      } else if (x > width * 0.7) {
-        setImgIndex((i) => Math.min(i + 1, place.images.length - 1))
+      const x = e.clientX - rect.left
+      const width = rect.width
+
+      if (x < width * 0.5) {
+        // 👉 LEVÁ půlka → předchozí
+        setImgIndex((i) => (i - 1 + place.images.length) % place.images.length)
       } else {
-        setFlipped(true)
+        // 👉 PRAVÁ půlka → další
+        setImgIndex((i) => (i + 1) % place.images.length)
       }
 
       setDragX(0)
@@ -200,10 +202,24 @@ export default function Home() {
                 </div>
 
                 <div className="actions">
-                  <button>❤️</button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation() // 🔥 KLÍČ
+                      console.log('like ❤️')
+                    }}
+                  >
+                    ❤️
+                  </button>
 
                   <div className="right-actions">
-                    <button onClick={() => setFlipped(true)}>ℹ️</button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation() // 🔥 KLÍČ
+                        setFlipped(true)
+                      }}
+                    >
+                      ℹ️
+                    </button>
                     <button>+</button>
                   </div>
                 </div>
