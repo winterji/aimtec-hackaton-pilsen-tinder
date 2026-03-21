@@ -11,7 +11,13 @@ services:
       - ./apps/backend/.env
     # Pokud používáte RDS, DATABASE_URL v .env musí mířit na AWS adresu
 
-  # Sem v budoucnu přidáme frontend
-  # frontend:
-  #   build: ./apps/frontend
-  #   ...
+  frontend:
+    build:
+      context: ./apps/frontend/frontend
+      dockerfile: Dockerfile
+    container_name: hackaton-frontend
+    restart: always
+    ports:
+      - "3002:3002"
+    depends_on:
+      - backend
