@@ -58,13 +58,18 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
+    console.log('--- ADMIN LOCATION POST ---');
+    console.log('Received body:', JSON.stringify(body, null, 2));
+
     // Validace vstupu pomocí Zod
     const validation = LocationCreateSchema.safeParse(body);
     if (!validation.success) {
+      console.log('Validation failed:', JSON.stringify(validation.error, null, 2));
       return NextResponse.json(formatZodError(validation.error), { status: 400 });
     }
 
     const { categoryId, googlePlaceId, name, customDescription, imageUrl, lat, lng } = validation.data;
+    console.log(`Updating/Creating place: ${googlePlaceId}, Name: ${name}, Category: ${categoryId}`);
 
     // 2. Uložení místa do DB (používáme upsert pro případ, že místo už existuje)
     const newPlace = await prisma.place.upsert({
@@ -87,6 +92,8 @@ export async function POST(request: NextRequest) {
         categoryId: categoryId,
       }
     });
+
+    console.log('Upsert result:', JSON.stringify(newPlace, null, 2));
 
     return NextResponse.json({ 
       message: 'Location successfully added',

@@ -106,6 +106,7 @@ export async function GET(request: NextRequest) {
         name: p.name,
         address: p.address,
         description: p.description || '',
+        categoryId: p.categoryId, // <--- Přidáno ID kategorie
         imageUrl: p.photoReference ? `/api/photos?googleRef=${p.photoReference}` : null,
         coordinates: { lat: p.latitude, lng: p.longitude }
       }));
