@@ -3,7 +3,7 @@ import axios from 'axios';
 // Vytvoříme instanci pro klientský frontend
 export const api = axios.create({
   // Předpokládáme, že backend běží na portu 3000
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://backend:3000/api',
   headers: {
     'Content-Type': 'application/json',
   },

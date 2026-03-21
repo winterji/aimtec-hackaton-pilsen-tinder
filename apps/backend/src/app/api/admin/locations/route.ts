@@ -25,6 +25,8 @@ export async function GET(request: NextRequest) {
       take: limit //&& !isNaN(limit) ? limit : undefined
     });
 
+    // console.log(places);
+
     const formattedPlaces = places.map(p => ({
       id: p.googleId,
       name: p.name,

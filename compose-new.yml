@@ -1,0 +1,45 @@
+services:
+  backend:
+    # build:
+    #   context: ./apps/backend
+    #   dockerfile: Dockerfile
+    image: jiwi/objevplzen:backend
+    container_name: hackaton-backend
+    restart: always
+    ports:
+      - "3000:3000"
+    # env_file:
+    #   - ./apps/backend/.env
+    environment:
+      - DATABASE_URL=${DATABASE_URL} # Tento env var musí být nastaven v .env souboru, který použijete při docker-compose up
+      - JWT_SECRET=admin
+      - NODE_ENV=production
+      - PORT=3000
+      - GOOGLE_PLACES_API_KEY=${GOOGLE_PLACES_API_KEY}
+    # Pokud používáte RDS, DATABASE_URL v .env musí mířit na AWS adresu
+
+  # frontend:
+  # #   build:
+  # #     context: ./apps/frontend/frontend
+  # #     dockerfile: Dockerfile
+  #   image: jiwi/objevplzen:frontend
+  #   container_name: hackaton-frontend
+  #   restart: always
+  #   ports:
+  #     - "3002:3002"
+  #   depends_on:
+  #     - backend
+
+  admin:
+    # build:
+    #   context: ./apps/admin
+    #   dockerfile: Dockerfile
+    image: jiwi/objevplzen:admin
+    container_name: hackaton-admin
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:3000/api
+    depends_on:
+      - backend
