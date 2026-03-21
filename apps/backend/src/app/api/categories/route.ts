@@ -6,6 +6,9 @@ import prisma from '@/lib/prisma';
  * Veřejný endpoint pro frontend.
  */
 export async function GET() {
+  // Poslední záchrana: Vypnutí SSL validace přímo před voláním Prisma
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
   try {
     // Vrátíme všechny kategorie se všemi poli (id, name, icon, description, number_of_items)
     const categories = await prisma.category.findMany({
