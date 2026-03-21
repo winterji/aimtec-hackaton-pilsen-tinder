@@ -17,12 +17,18 @@ export const NAV_DATA = [
         //   },
         // ],
       },
-      // {
-      //   title: "Calendar",
-      //   url: "/calendar",
-      //   icon: Icons.Calendar,
-      //   items: [],
-      // },
+      {
+        title: "Categories",
+        url: "/categories",
+        icon: Icons.PieChart,
+        items: [],
+      },
+      {
+        title: "Locations",
+        url: "/locations",
+        icon: Icons.Alphabet,
+        items: [],
+      },
       {
         title: "Profile",
         url: "/profile",
