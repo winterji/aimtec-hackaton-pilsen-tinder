@@ -133,6 +133,13 @@
   box-shadow: 0 20px 60px rgba(0,0,0,0.12);
   position: relative;
   transition: transform 0.3s ease;
+  will-change: transform;
+  cursor: grab;
+  touch-action: pan-y; /* 🔥 důležité pro mobil */
+}
+
+.card:active {
+  cursor: grabbing;
 }
 
 .card:hover {
@@ -241,10 +248,12 @@
   position: absolute;
   inset: 0;
   display: flex;
+  pointer-events: none;
 }
 
 .nav-zones div {
   width: 50%;
+  pointer-events: auto;
 }
 
 .bottom-bar {

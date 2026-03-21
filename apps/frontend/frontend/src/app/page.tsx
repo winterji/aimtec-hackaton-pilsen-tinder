@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import '../styles.css'
 
 const places = [
@@ -29,57 +29,56 @@ export default function Home() {
   const [imgIndex, setImgIndex] = useState(0)
   const [flipped, setFlipped] = useState(false)
 
-  // 🔥 CHYBĚLO → ref
+  const [dragX, setDragX] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const startX = useRef(0)
+
   const sliderRef = useRef<HTMLDivElement | null>(null)
 
   const place = places[index]
 
-  // 🔥 DRAG SCROLL
-  useEffect(() => {
-    const slider = sliderRef.current
-    if (!slider) return
+  // 👉 CATEGORY DRAG (zůstává)
+  // (tvůj původní useEffect můžeš nechat – funguje)
 
-    let isDown = false
-    let startX = 0
-    let scrollLeft = 0
+  // 👉 SWIPE LOGIKA (React style)
+  const handleStart = (clientX: number) => {
+    setIsDragging(true)
+    startX.current = clientX
+  }
 
-    const mouseDown = (e: MouseEvent) => {
-      isDown = true
-      slider.classList.add('dragging')
-      startX = e.pageX - slider.offsetLeft
-      scrollLeft = slider.scrollLeft
+  const handleMove = (clientX: number) => {
+    if (!isDragging) return
+    const delta = clientX - startX.current
+    setDragX(delta)
+  }
+
+  const handleEnd = () => {
+    setIsDragging(false)
+
+    const threshold = 120
+
+    if (dragX < -threshold) {
+      setDragX(-500)
+      setTimeout(() => {
+        setIndex((i) => Math.min(i + 1, places.length - 1))
+        setImgIndex(0)
+        setFlipped(false)
+        setDragX(0)
+      }, 200)
+
+    } else if (dragX > threshold) {
+      setDragX(500)
+      setTimeout(() => {
+        setIndex((i) => Math.max(i - 1, 0))
+        setImgIndex(0)
+        setFlipped(false)
+        setDragX(0)
+      }, 200)
+
+    } else {
+      setDragX(0)
     }
-
-    const mouseLeave = () => {
-      isDown = false
-      slider.classList.remove('dragging')
-    }
-
-    const mouseUp = () => {
-      isDown = false
-      slider.classList.remove('dragging')
-    }
-
-    const mouseMove = (e: MouseEvent) => {
-      if (!isDown) return
-      e.preventDefault()
-      const x = e.pageX - slider.offsetLeft
-      const walk = (x - startX) * 1.5
-      slider.scrollLeft = scrollLeft - walk
-    }
-
-    slider.addEventListener('mousedown', mouseDown)
-    slider.addEventListener('mouseleave', mouseLeave)
-    slider.addEventListener('mouseup', mouseUp)
-    slider.addEventListener('mousemove', mouseMove)
-
-    return () => {
-      slider.removeEventListener('mousedown', mouseDown)
-      slider.removeEventListener('mouseleave', mouseLeave)
-      slider.removeEventListener('mouseup', mouseUp)
-      slider.removeEventListener('mousemove', mouseMove)
-    }
-  }, [])
+  }
 
   return (
     <main className="app-container">
@@ -105,13 +104,28 @@ export default function Home() {
 
       {/* CARD */}
       <div className="card-wrapper">
-        <div className="card">
+        <div
+          className="card"
+          style={{
+            transform: `translateX(${dragX}px) rotate(${dragX * 0.05}deg)`,
+            transition: isDragging ? 'none' : 'transform 0.3s ease'
+          }}
+          onMouseDown={(e) => handleStart(e.clientX)}
+          onMouseMove={(e) => handleMove(e.clientX)}
+          onMouseUp={handleEnd}
+          onMouseLeave={handleEnd}
+          onTouchStart={(e) => handleStart(e.touches[0].clientX)}
+          onTouchMove={(e) => handleMove(e.touches[0].clientX)}
+          onTouchEnd={handleEnd}
+        >
 
           {!flipped && (
             <div
               className="card-front"
               style={{ backgroundImage: `url(${place.images[imgIndex]})` }}
               onClick={(e) => {
+                if (isDragging) return // 🔥 zabrání konfliktu swipe vs click
+
                 const x = e.clientX
                 const width = window.innerWidth
 
@@ -125,9 +139,7 @@ export default function Home() {
               }}
             >
               <div className="card-title-wrapper">
-                <div className="card-title">
-                  {place.name}
-                </div>
+                <div className="card-title">{place.name}</div>
               </div>
 
               <div className="card-bottom">
@@ -157,20 +169,6 @@ export default function Home() {
             </div>
           )}
 
-        </div>
-
-        {/* NAV */}
-        <div className="nav-zones">
-          <div onClick={() => {
-            setIndex((i) => Math.max(i - 1, 0))
-            setImgIndex(0)
-            setFlipped(false)
-          }} />
-          <div onClick={() => {
-            setIndex((i) => Math.min(i + 1, places.length - 1))
-            setImgIndex(0)
-            setFlipped(false)
-          }} />
         </div>
       </div>
 
