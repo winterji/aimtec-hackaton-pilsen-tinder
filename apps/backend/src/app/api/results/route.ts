@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { SwipeResultsSchema, formatZodError } from '@/lib/schemas';
 
 /**
  * POST: Odeslání výsledků swipování uživatelem.
@@ -8,11 +9,14 @@ import prisma from '@/lib/prisma';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { sessionId, likedLocations, dislikedLocations } = body;
-
-    if (!sessionId) {
-      return NextResponse.json({ error: 'Chybí sessionId.' }, { status: 400 });
+    
+    // Validace vstupu pomocí Zod
+    const validation = SwipeResultsSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(formatZodError(validation.error), { status: 400 });
     }
+
+    const { sessionId, likedLocations, dislikedLocations } = validation.data;
 
     // 1. Kontrola, zda již výsledky pro toto sessionId nebyly uloženy (prevence duplicit)
     const existingSession = await prisma.swipeSession.findUnique({

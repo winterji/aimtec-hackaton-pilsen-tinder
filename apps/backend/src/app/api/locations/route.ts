@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import crypto from 'crypto';
+import { isRateLimited } from '@/lib/rate-limit';
 
-const MAX_CACHE_DAYS = 30;
+const SOFT_EXPIRATION_DAYS = 28; // Refresh on background
+const HARD_EXPIRATION_DAYS = 30; // Must refresh before returning
 
 /**
  * Pomocná funkce pro osvěžení dat jednoho místa z Google Places API.
@@ -22,7 +24,6 @@ async function refreshPlaceFromGoogle(googleId: string, apiKey: string) {
     if (!response.ok) return null;
     const place = await response.json();
 
-    // Aktualizujeme data v naší DB
     return await prisma.place.update({
       where: { googleId },
       data: {
@@ -31,7 +32,6 @@ async function refreshPlaceFromGoogle(googleId: string, apiKey: string) {
         latitude: place.location?.latitude || 0,
         longitude: place.location?.longitude || 0,
         photoReference: place.photos?.[0]?.name || null,
-        // updatedAt se díky Prisma @updatedAt automaticky nastaví na "teď"
       }
     });
   } catch (error) {
@@ -42,11 +42,20 @@ async function refreshPlaceFromGoogle(googleId: string, apiKey: string) {
 
 /**
  * GET: Vrátí seznam míst pro swipování.
- * Implementuje 30denní politiku Google Maps (automatické osvěžení starých dat).
+ * Optimalizováno pro rychlost a právní soulad (28-denní background refresh).
  */
 export async function GET(request: NextRequest) {
+  // 1. Ochrana proti vytěžování (Rate Limiting)
+  // Limit: 10 požadavků za minutu (60000 ms)
+  if (isRateLimited(request, { limit: 10, windowMs: 60000 })) {
+    return NextResponse.json({ 
+      error: 'Too many requests. Please try again in a minute.',
+      info: 'Rate limit applied to protect Google API quota.'
+    }, { status: 429 });
+  }
+
   const searchParams = request.nextUrl.searchParams;
-  const categoryId = searchParams.get('categoryId');
+
   const searchString = searchParams.get('searchString');
 
   if ((!categoryId && !searchString) || (categoryId && searchString)) {
@@ -60,7 +69,7 @@ export async function GET(request: NextRequest) {
   let finalLocations: any[] = [];
 
   try {
-    // A) Načtení z naší DB podle kategorie (s kontrolou stáří dat)
+    // A) Načtení z naší DB podle kategorie
     if (categoryId) {
       const dbPlaces = await prisma.place.findMany({
         where: { categoryId },
@@ -68,19 +77,32 @@ export async function GET(request: NextRequest) {
       });
 
       const now = new Date();
-      const thirtyDaysAgo = new Date(now.getTime() - (MAX_CACHE_DAYS * 24 * 60 * 60 * 1000));
+      const softLimit = new Date(now.getTime() - (SOFT_EXPIRATION_DAYS * 24 * 60 * 60 * 1000));
+      const hardLimit = new Date(now.getTime() - (HARD_EXPIRATION_DAYS * 24 * 60 * 60 * 1000));
 
-      // Kontrola a případné osvěžení každého místa
-      const refreshedPlaces = await Promise.all(dbPlaces.map(async (p) => {
-        if (p.updatedAt < thirtyDaysAgo && apiKey) {
-          // Data jsou starší než 30 dní -> Refresh z Google
+      const processedPlaces = await Promise.all(dbPlaces.map(async (p) => {
+        if (!apiKey) return p;
+
+        if (p.updatedAt < hardLimit) {
+          // 1. KRITICKÉ: Data starší než 30 dní -> Musíme počkat na refresh (Hard Limit)
           const refreshed = await refreshPlaceFromGoogle(p.googleId, apiKey);
-          return refreshed || p; // Pokud refresh selže, vrátíme aspoň stará data
+          return refreshed || p;
+        } 
+        
+        if (p.updatedAt < softLimit) {
+          // 2. OPTIMALIZACE: Data mezi 28-30 dny -> Vrátíme hned, ale spustíme refresh na pozadí
+          // Nečekáme na výsledek (nepoužijeme await)
+          refreshPlaceFromGoogle(p.googleId, apiKey).catch(err => 
+            console.error(`Background refresh failed for ${p.googleId}:`, err)
+          );
+          return p;
         }
+
+        // 3. Čerstvá data -> Nic neřešíme
         return p;
       }));
 
-      finalLocations = refreshedPlaces.map(p => ({
+      finalLocations = processedPlaces.map(p => ({
         id: p.googleId,
         name: p.name,
         address: p.address,
@@ -111,9 +133,10 @@ export async function GET(request: NextRequest) {
 
       const googlePlaces = data.places || [];
 
-      // Automatické uložení/aktualizace nalezených míst (vždy čerstvé -> reset 30denního limitu)
+      // Automatické uložení nalezených míst (vždy čerstvé)
+      // Spouštíme asynchronně, abychom neblokovali odpověď pro uživatele
       for (const place of googlePlaces) {
-        await prisma.place.upsert({
+        prisma.place.upsert({
           where: { googleId: place.id },
           update: {
             name: place.displayName?.text || 'Neznámý název',
@@ -132,7 +155,7 @@ export async function GET(request: NextRequest) {
             categoryId: null,
             description: ''
           }
-        });
+        }).catch(err => console.error("Async upsert failed:", err));
       }
 
       finalLocations = googlePlaces.map((place: any) => ({

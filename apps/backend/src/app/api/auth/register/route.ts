@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { AuthSchema, formatZodError } from '@/lib/schemas';
 
 // POST: Registrace nového uživatele
 export async function POST(request: NextRequest) {
   try {
-    const { username, password } = await request.json();
-
-    if (!username || !password) {
-      return NextResponse.json({ error: 'Uživatelské jméno a heslo jsou povinné.' }, { status: 400 });
+    const body = await request.json();
+    
+    // Validace vstupu pomocí Zod
+    const validation = AuthSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(formatZodError(validation.error), { status: 400 });
     }
+
+    const { username, password } = validation.data;
 
     // 1. Zjistíme, jestli už uživatel neexistuje
     const existingUser = await prisma.user.findUnique({
