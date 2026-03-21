@@ -2,17 +2,27 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { AuthSchema, formatZodError } from '@/lib/schemas';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback_tajne_heslo';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // POST: Přihlášení uživatele
 export async function POST(request: NextRequest) {
-  try {
-    const { username, password } = await request.json();
+  if (!JWT_SECRET) {
+    console.error('CRITICAL: JWT_SECRET is not defined in environment variables.');
+    return NextResponse.json({ error: 'Server configuration error.' }, { status: 500 });
+  }
 
-    if (!username || !password) {
-      return NextResponse.json({ error: 'Uživatelské jméno a heslo jsou povinné.' }, { status: 400 });
+  try {
+    const body = await request.json();
+
+    // Validace vstupu pomocí Zod
+    const validation = AuthSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(formatZodError(validation.error), { status: 400 });
     }
+
+    const { username, password } = validation.data;
 
     // 1. Najdeme uživatele v databázi
     const user = await prisma.user.findUnique({
@@ -32,11 +42,11 @@ export async function POST(request: NextRequest) {
 
     // 3. Vytvoříme JWT token
     // Do tokenu uložíme id a username (bez hesla!)
-    // Vypršení nastavíme např. na 24 hodin
+    // Vypršení nastavíme na 12 hodin
     const token = jwt.sign(
       { userId: user.id, username: user.username },
       JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: '12h' }
     );
 
     // 4. Vrátíme token a informace o uživateli
