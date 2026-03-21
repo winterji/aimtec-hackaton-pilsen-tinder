@@ -8,22 +8,25 @@ import { LocationCreateSchema, formatZodError } from '@/lib/schemas';
  * Vyžaduje JWT token v hlavičce Authorization.
  */
 export async function GET(request: NextRequest) {
+  console.log('--- [BACKEND DEBUG] GET /api/admin/locations START ---');
   // 1. Ověření administrátora
   const admin = verifyToken(request);
   if (!admin) {
+    console.log('[BACKEND DEBUG] Unauthorized access - token invalid or missing');
     return NextResponse.json({ error: 'Unauthorized access (missing or invalid token)' }, { status: 401 });
   }
 
   try {
-    // Čtení limitu z URL parametrů (?limit=10)
     const { searchParams } = new URL(request.url);
     const limitParam = searchParams.get('limit');
     const limit = limitParam ? parseInt(limitParam, 10) : undefined;
 
+    console.log(`[BACKEND DEBUG] Fetching locations from DB (limit: ${limit || 'none'})...`);
     const places = await prisma.place.findMany({
       orderBy: { createdAt: 'desc' },
-      take: limit //&& !isNaN(limit) ? limit : undefined
+      take: limit && !isNaN(limit) ? limit : undefined
     });
+    console.log(`[BACKEND DEBUG] Found ${places.length} places in DB.`);
 
     const formattedPlaces = places.map(p => ({
       id: p.googleId,
@@ -31,7 +34,7 @@ export async function GET(request: NextRequest) {
       address: p.address,
       description: p.description || '',
       imageUrl: p.photoReference,
-      categoryId: p.categoryId, // <--- Přidáno ID kategorie
+      categoryId: p.categoryId,
       coordinates: {
         lat: p.latitude,
         lng: p.longitude
@@ -40,7 +43,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(formattedPlaces);
   } catch (error) {
-    console.error('Fetch admin locations error:', error);
+    console.error('[BACKEND DEBUG] Fetch admin locations error:', error);
     return NextResponse.json({ error: 'Interní chyba serveru při komunikaci s databází' }, { status: 500 });
   }
 }
@@ -50,26 +53,41 @@ export async function GET(request: NextRequest) {
  * Vyžaduje JWT token v hlavičce Authorization.
  */
 export async function POST(request: NextRequest) {
+  console.log('--- [BACKEND DEBUG] POST /api/admin/locations START ---');
   // 1. Ověření administrátora
   const admin = verifyToken(request);
   if (!admin) {
+    console.log('[BACKEND DEBUG] Unauthorized access - token invalid or missing');
     return NextResponse.json({ error: 'Unauthorized access (missing or invalid token)' }, { status: 401 });
   }
 
   try {
     const body = await request.json();
-    console.log('--- ADMIN LOCATION POST ---');
-    console.log('Received body:', JSON.stringify(body, null, 2));
+    console.log('[BACKEND DEBUG] Received body:', JSON.stringify(body, null, 2));
 
     // Validace vstupu pomocí Zod
     const validation = LocationCreateSchema.safeParse(body);
     if (!validation.success) {
-      console.log('Validation failed:', JSON.stringify(validation.error, null, 2));
+      console.log('[BACKEND DEBUG] Zod validation FAILED:', JSON.stringify(validation.error.format(), null, 2));
       return NextResponse.json(formatZodError(validation.error), { status: 400 });
     }
 
     const { categoryId, googlePlaceId, name, customDescription, imageUrl, lat, lng } = validation.data;
-    console.log(`Updating/Creating place: ${googlePlaceId}, Name: ${name}, Category: ${categoryId}`);
+    console.log(`[BACKEND DEBUG] Data for UPSERT:
+      - googleId: ${googlePlaceId}
+      - categoryId: ${categoryId}
+      - name: ${name}
+      - lat/lng: ${lat}, ${lng}`);
+
+    // Zkontrolujeme, zda kategorie existuje
+    if (categoryId) {
+        const cat = await prisma.category.findUnique({ where: { id: categoryId } });
+        if (!cat) {
+            console.log(`[BACKEND DEBUG] WARNING: Category with ID "${categoryId}" does NOT exist in database!`);
+        } else {
+            console.log(`[BACKEND DEBUG] Found category in DB: ${cat.name}`);
+        }
+    }
 
     // 2. Uložení místa do DB (používáme upsert pro případ, že místo už existuje)
     const newPlace = await prisma.place.upsert({
@@ -93,15 +111,15 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    console.log('Upsert result:', JSON.stringify(newPlace, null, 2));
+    console.log('[BACKEND DEBUG] UPSERT successful. Result from DB:', JSON.stringify(newPlace, null, 2));
 
     return NextResponse.json({ 
       message: 'Location successfully added',
       place: newPlace 
     }, { status: 201 });
 
-  } catch (error) {
-    console.error('Create admin location error:', error);
-    return NextResponse.json({ error: 'Internal server error while adding location.' }, { status: 500 });
+  } catch (error: any) {
+    console.error('[BACKEND DEBUG] Create admin location FATAL ERROR:', error);
+    return NextResponse.json({ error: 'Internal server error while adding location.', details: error.message }, { status: 500 });
   }
 }
