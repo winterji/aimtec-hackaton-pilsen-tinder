@@ -272,3 +272,45 @@
   font-weight: 600;
   box-shadow: 0 10px 30px rgba(255,77,109,0.3);
 }
+
+
+.info-overlay {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: rgba(0,0,0,0.4);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  animation: fadeIn 0.25s ease;
+}
+
+.info-content {
+  color: white;
+  text-align: center;
+  padding: 20px;
+  max-width: 80%;
+
+  background: rgba(255,255,255,0.1);
+  border-radius: 20px;
+
+  backdrop-filter: blur(10px);
+
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(12px);
+  }
+}

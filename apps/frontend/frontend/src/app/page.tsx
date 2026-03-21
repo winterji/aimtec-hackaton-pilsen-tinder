@@ -34,12 +34,11 @@ export default function Home() {
   const sliderRef = useRef<HTMLDivElement | null>(null)
   const startX = useRef(0)
   const isDragging = useRef(false)
-
   const isClickOnButton = useRef(false)
 
   const place = places[index]
 
-  // 🔥 CATEGORY DRAG (zůstává jak máš)
+  // 👉 CATEGORY DRAG
   useEffect(() => {
     const slider = sliderRef.current
     if (!slider) return
@@ -86,7 +85,7 @@ export default function Home() {
     }
   }, [])
 
-  // 🔥 SWIPE + CLICK LOGIKA
+  // 👉 SWIPE + CLICK
   const handlePointerDown = (e: React.PointerEvent) => {
     isDragging.current = true
     startX.current = e.clientX
@@ -94,7 +93,6 @@ export default function Home() {
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging.current) return
-
     const delta = e.clientX - startX.current
     setDragX(delta)
   }
@@ -117,15 +115,12 @@ export default function Home() {
     // 👉 CLICK
     if (Math.abs(delta) < clickThreshold) {
       const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-
       const x = e.clientX - rect.left
       const width = rect.width
 
       if (x < width * 0.5) {
-        // 👉 LEVÁ půlka → předchozí
         setImgIndex((i) => (i - 1 + place.images.length) % place.images.length)
       } else {
-        // 👉 PRAVÁ půlka → další
         setImgIndex((i) => (i + 1) % place.images.length)
       }
 
@@ -160,18 +155,16 @@ export default function Home() {
   return (
     <main className="app-container">
 
-      {/* TOP SEARCH */}
       <div className="top-search">
         <input placeholder="Hledat podnik..." />
       </div>
 
-      {/* CATEGORY BAR */}
       <div className="category-wrapper">
         <div className="category-bar" ref={sliderRef}>
           <div className="category-inner">
             {[
               'Kavárny','Parky','Restaurace','Restaurace2',
-              'Restaurace3','Restaurace4','Restaurace5','Další','Další2'
+              'Restaurace3','Restaurace4','Restaurace5'
             ].map((c) => (
               <button key={c}>{c}</button>
             ))}
@@ -179,7 +172,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* CARD */}
       <div className="card-wrapper">
         <div
           className="card"
@@ -193,23 +185,56 @@ export default function Home() {
           onPointerLeave={handlePointerUp}
         >
 
-          {!flipped && (
-            <div
-              className="card-front"
-              style={{ backgroundImage: `url(${place.images[imgIndex]})` }}
-            >
-              <div className="card-title-wrapper">
-                <div className="card-title">{place.name}</div>
+          <div
+            className="card-front"
+            style={{ backgroundImage: `url(${place.images[imgIndex]})` }}
+          >
+
+            {/* TITLE */}
+            <div className="card-title-wrapper">
+              <div className="card-title">{place.name}</div>
+            </div>
+
+            {/* 👉 INFO OVERLAY */}
+            {flipped && (
+              <div
+                className="info-overlay"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setFlipped(false)
+                }}
+              >
+                <div className="info-content">
+                  <h2>{place.name}</h2>
+                  <p>{place.description}</p>
+                  <p>{place.hours}</p>
+                </div>
+              </div>
+            )}
+
+            {/* BOTTOM */}
+            <div className="card-bottom">
+              <div className="dots">
+                {place.images.map((_, i) => (
+                  <div key={i} className={`dot ${i === imgIndex ? 'active' : ''}`} />
+                ))}
               </div>
 
-              <div className="card-bottom">
-                <div className="dots">
-                  {place.images.map((_, i) => (
-                    <div key={i} className={`dot ${i === imgIndex ? 'active' : ''}`} />
-                  ))}
-                </div>
+              <div className="actions">
+                <button
+                  onPointerDown={(e) => {
+                    isClickOnButton.current = true
+                    e.stopPropagation()
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    console.log('like ❤️')
+                  }}
+                >
+                  ❤️
+                </button>
 
-                <div className="actions">
+                <div className="right-actions">
                   <button
                     onPointerDown={(e) => {
                       isClickOnButton.current = true
@@ -217,44 +242,19 @@ export default function Home() {
                     }}
                     onClick={(e) => {
                       e.stopPropagation()
-                      console.log('like ❤️')
+                      setFlipped(true)
                     }}
                   >
-                    ❤️
+                    ℹ️
                   </button>
-
-                  <div className="right-actions">
-                    <button
-                      onPointerDown={(e) => {
-                        isClickOnButton.current = true
-                        e.stopPropagation()
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setFlipped(true)
-                        console.log('info ℹ️')
-                      }}
-                    >
-                      ℹ️
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>
-          )}
 
-          {flipped && (
-            <div className="card-back" onClick={() => setFlipped(false)}>
-              <h2>{place.name}</h2>
-              <p>{place.description}</p>
-              <p>{place.hours}</p>
-            </div>
-          )}
-
+          </div>
         </div>
       </div>
 
-      {/* BOTTOM */}
       <div className="bottom-bar">
         <button>+ Přidat do tripu</button>
       </div>
