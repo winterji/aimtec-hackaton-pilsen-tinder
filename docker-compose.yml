@@ -21,3 +21,14 @@ services:
       - "3002:3002"
     depends_on:
       - backend
+
+  admin:
+    build:
+      context: ./apps/admin
+      dockerfile: Dockerfile
+    container_name: hackaton-admin
+    restart: always
+    ports:
+      - "3001:3001"
+    depends_on:
+      - backend
