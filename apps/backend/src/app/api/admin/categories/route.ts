@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
+import { CategoryCreateSchema, formatZodError } from '@/lib/schemas';
 
 /**
  * POST: Vytvoří novou kategorii.
@@ -15,21 +16,23 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { id, name, icon, number_of_items, description } = body;
-
-    // Základní validace povinných polí
-    if (!id || !name) {
-      return NextResponse.json({ error: 'ID a název kategorie jsou povinné.' }, { status: 400 });
+    
+    // Validace vstupu pomocí Zod
+    const validation = CategoryCreateSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(formatZodError(validation.error), { status: 400 });
     }
+
+    const { id, name, icon, number_of_items, description } = validation.data;
 
     // 2. Vytvoření kategorie v DB
     const newCategory = await prisma.category.create({
       data: {
         id,
         name,
-        icon: icon || null,
-        description: description || null,
-        number_of_items: number_of_items || 0
+        icon,
+        description,
+        number_of_items
       }
     });
 

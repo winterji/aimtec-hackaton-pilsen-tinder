@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
+import { LocationCreateSchema, formatZodError } from '@/lib/schemas';
 
 /**
  * POST: Přidá nové místo do databáze (Admin jen).
@@ -15,12 +16,14 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { categoryId, googlePlaceId, name, customDescription, imageUrl, lat, lng } = body;
-
-    // Základní validace
-    if (!categoryId || !googlePlaceId || !name) {
-      return NextResponse.json({ error: 'Missing required fields (categoryId, googlePlaceId, name).' }, { status: 400 });
+    
+    // Validace vstupu pomocí Zod
+    const validation = LocationCreateSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(formatZodError(validation.error), { status: 400 });
     }
+
+    const { categoryId, googlePlaceId, name, customDescription, imageUrl, lat, lng } = validation.data;
 
     // 2. Uložení místa do DB (používáme upsert pro případ, že místo už existuje)
     const newPlace = await prisma.place.upsert({
@@ -29,7 +32,7 @@ export async function POST(request: NextRequest) {
         name,
         latitude: lat,
         longitude: lng,
-        photoReference: imageUrl, // Zde ukládáme buď URL nebo googleRef
+        photoReference: imageUrl,
         description: customDescription,
         categoryId: categoryId,
       },
