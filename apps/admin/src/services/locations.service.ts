@@ -4,7 +4,7 @@ import { Location } from '../types'; // Zde si naimportujete typy, které jsme d
 export const getLocations = async (categoryId?: string): Promise<Location[]> => {
   // Volá veřejný endpoint (nevyžaduje token, ale api instanci můžeme použít)
   const params = categoryId ? { categoryId } : {};
-  const response = await api.get('/locations', { params });
+  const response = await api.get('/admin/locations', { params });
   return response.data;
 };
 
