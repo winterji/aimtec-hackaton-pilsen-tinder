@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import '../styles.css'
 
+
 const places = [
   {
     name: 'Kavárna 1',

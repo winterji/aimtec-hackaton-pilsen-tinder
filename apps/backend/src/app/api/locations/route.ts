@@ -57,7 +57,8 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
 
   const searchString = searchParams.get('searchString');
-
+  const categoryId = searchParams.get('categoryId');
+  
   if ((!categoryId && !searchString) || (categoryId && searchString)) {
     return NextResponse.json({ 
       error: 'You must provide EITHER categoryId OR searchString.' 
