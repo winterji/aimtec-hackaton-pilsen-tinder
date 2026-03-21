@@ -22,8 +22,10 @@ export async function GET(request: NextRequest) {
 
     const places = await prisma.place.findMany({
       orderBy: { createdAt: 'desc' },
-      take: limit && !isNaN(limit) ? limit : undefined
+      take: limit //&& !isNaN(limit) ? limit : undefined
     });
+
+    // console.log(places);
 
     const formattedPlaces = places.map(p => ({
       id: p.googleId,
@@ -31,6 +33,7 @@ export async function GET(request: NextRequest) {
       address: p.address,
       description: p.description || '',
       imageUrl: p.photoReference,
+      categoryId: p.categoryId, // <--- Přidáno ID kategorie
       coordinates: {
         lat: p.latitude,
         lng: p.longitude
@@ -57,7 +60,6 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    
     // Validace vstupu pomocí Zod
     const validation = LocationCreateSchema.safeParse(body);
     if (!validation.success) {
