@@ -5,47 +5,64 @@ import { useRouter } from 'next/navigation'
 import type { Location } from '@/types'
 
 export default function FavoritesPage() {
-  const [favorites, setFavorites] = useState<Location[]>([])
+  const [favorites, setFavorites] = useState<Location[]>(() => {
+    if (typeof window === 'undefined') return []
+    const stored = localStorage.getItem('favorites')
+    return stored ? JSON.parse(stored) : []
+  })
   const router = useRouter()
 
+  const removeFavorite = (id: string) => {
+    setFavorites((prev) => prev.filter((l) => l.id !== id))
+  }
+
+  
+
   useEffect(() => {
-    const stored = localStorage.getItem('favorites')
-    if (stored) {
-      setFavorites(JSON.parse(stored))
-    }
-  }, [])
+    localStorage.setItem('favorites', JSON.stringify(favorites))
+    }, [favorites])
+
+  
 
   return (
     <main className="favorites-container">
 
-      {/* HEADER */}
-      <div className="favorites-header">
+        {/* HEADER */}
+        <div className="favorites-header">
         <button className="back-button" onClick={() => router.push('/')}>
-        ←
+            ←
         </button>
         <h2>Oblíbené</h2>
-      </div>
+        </div>
 
-      {/* LIST */}
-      <div className="favorites-list">
+        {/* LIST */}
+        <div className="favorites-list">
         {favorites.length === 0 ? (
-          <p>Žádné oblíbené lokace 😢</p>
+            <p>Žádné oblíbené lokace 😢</p>
         ) : (
-          favorites.map((loc) => (
+            favorites.map((loc) => (
             <div key={loc.id} className="favorite-item">
 
-              <img src={loc.imageUrl} alt={loc.name} />
+                <img src={loc.imageUrl} alt={loc.name} />
 
-              <div className="favorite-info">
+                <div className="favorite-info">
                 <h3>{loc.name}</h3>
                 <p>{loc.categoryId || 'Neznámá kategorie'}</p>
-              </div>
+                </div>
+
+                {/* ❤️ REMOVE BUTTON */}
+                <button
+                className="favorite-remove"
+                onClick={() => removeFavorite(loc.id)}
+                >
+                ❤️
+                </button>
 
             </div>
-          ))
+            ))
         )}
-      </div>
+        </div>
 
     </main>
-  )
+    )
 }
