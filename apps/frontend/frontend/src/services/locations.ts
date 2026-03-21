@@ -18,7 +18,85 @@ export const getLocations = async (categoryId?: string, searchString?: string): 
     
     const config = Object.keys(params).length > 0 ? { params } : {};
     const response = await api.get<Location[]>('/locations', config);
-    return response.data;
+    //return response.data;
+
+    return [
+        {
+          id: '1',
+          categoryId: 'kavarny',
+          name: 'Kavárna Central',
+          address: 'Náměstí Republiky, Plzeň',
+          description: 'Stylová kavárna v centru',
+          imageUrl: 'https://picsum.photos/500/800?1',
+          coordinates: {
+            lat: 49.7475,
+            lng: 13.3776
+          }
+        },
+        {
+          id: '2',
+          categoryId: 'parky',
+          name: 'Borský park',
+          address: 'Borský park, Plzeň',
+          description: 'Velký park ideální na relax',
+          imageUrl: 'https://picsum.photos/500/800?2',
+          coordinates: {
+            lat: 49.738,
+            lng: 13.355
+          }
+        },
+        {
+          id: '3',
+          categoryId: 'pamatky',
+          name: 'Katedrála sv. Bartoloměje',
+          address: 'Náměstí Republiky',
+          description: 'Dominanta Plzně',
+          imageUrl: 'https://picsum.photos/500/800?3',
+          coordinates: {
+            lat: 49.7478,
+            lng: 13.3775
+          }
+        },
+        {
+          id: '4',
+          categoryId: 'pamatky2',
+          name: 'Katedrála sv. Bartoloměje',
+          address: 'Náměstí Republiky',
+          description: 'Dominanta Plzně',
+          imageUrl: 'https://picsum.photos/500/800?3',
+          coordinates: {
+            lat: 49.7478,
+            lng: 13.3775
+          }
+        },
+        {
+          id: '5',
+          categoryId: 'pamatky3',
+          name: 'Katedrála sv. Bartoloměje',
+          address: 'Náměstí Republiky',
+          description: 'Dominanta Plzně',
+          imageUrl: 'https://picsum.photos/500/800?3',
+          coordinates: {
+            lat: 49.7478,
+            lng: 13.3775
+          }
+        },
+        {
+          id: '6',
+          categoryId: 'pamatky4',
+          name: 'Katedrála sv. Bartoloměje',
+          address: 'Náměstí Republiky',
+          description: 'Dominanta Plzně',
+          imageUrl: 'https://picsum.photos/500/800?3',
+          coordinates: {
+            lat: 49.7478,
+            lng: 13.3775
+          }
+        }
+      ]
+    
+
+
 };
 
 // /**

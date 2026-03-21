@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import '../styles.css'
 
 import { getCategories } from "@/services/categories"
+import { getLocations } from "@/services/locations"
 
 
 const places = [
