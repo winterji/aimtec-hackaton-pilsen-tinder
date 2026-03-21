@@ -124,7 +124,11 @@ export default function Home() {
                 }
               }}
             >
-              <div className="card-title">{place.name}</div>
+              <div className="card-title-wrapper">
+                <div className="card-title">
+                  {place.name}
+                </div>
+              </div>
 
               <div className="card-bottom">
                 <div className="dots">
