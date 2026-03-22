@@ -39,10 +39,11 @@ model Place {
   updatedAt       DateTime @updatedAt
 }
 
-model User {
-  id       String @id @default(cuid())
-  username String @unique
-  password String // Hashed password
+model Leaderboard {
+  id        String   @id @default(cuid())
+  name      String
+  score     Int
+  createdAt DateTime @default(now())
 }
 
 model SwipeSession {
