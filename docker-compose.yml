@@ -32,3 +32,10 @@ services:
       - "3001:3001"
     depends_on:
       - backend
+
+  game:
+    image: jiwi/objevplzen:game
+    container_name: hackaton-game
+    restart: always
+    ports:
+      - "4000:4000"
