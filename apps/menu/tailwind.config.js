@@ -5,6 +5,15 @@ module.exports = {
   ],
   theme: {
     extend: {
+      colors: {
+        brand: {
+          brown: "#754425",
+          green: "#2F6E22",
+          cream: "#E0DAD8",
+          blue: "#276FBF",
+          orange: "#EF8A17",
+        }
+      },
       animation: {
         'gradient-pulse': 'gradient-pulse 6s ease-in-out infinite',
       },
