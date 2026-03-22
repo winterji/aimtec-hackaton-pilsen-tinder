@@ -47,12 +47,12 @@ async function refreshPlaceFromGoogle(googleId: string, apiKey: string) {
 export async function GET(request: NextRequest) {
   // 1. Ochrana proti vytěžování (Rate Limiting)
   // Limit: 10 požadavků za minutu (60000 ms)
-  if (isRateLimited(request, { limit: 10, windowMs: 60000 })) {
-    return NextResponse.json({ 
-      error: 'Too many requests. Please try again in a minute.',
-      info: 'Rate limit applied to protect Google API quota.'
-    }, { status: 429 });
-  }
+  // if (isRateLimited(request, { limit: 10, windowMs: 60000 })) {
+  //   return NextResponse.json({ 
+  //     error: 'Too many requests. Please try again in a minute.',
+  //     info: 'Rate limit applied to protect Google API quota.'
+  //   }, { status: 429 });
+  // }
 
   const searchParams = request.nextUrl.searchParams;
   const categoryId = searchParams.get('categoryId');
