@@ -17,8 +17,7 @@ export const getLocations = async (categoryId?: string, searchString?: string): 
     }
     
     const config = Object.keys(params).length > 0 ? { params } : {};
-    const response = await api.get<LocationResponse>('/locations', config);
-    console.log(response);
+    const response = await api.get<LocationResponse[]>('/locations', config);
     return response.data[0];
 
     
