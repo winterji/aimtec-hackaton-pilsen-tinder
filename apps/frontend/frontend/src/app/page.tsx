@@ -23,6 +23,11 @@ export default function Home() {
   const [imgIndex, setImgIndex] = useState(0)
   const [flipped, setFlipped] = useState(false)
 
+  const [search, setSearch] = useState('')
+
+  const [searchInput, setSearchInput] = useState('')
+  const [activeSearch, setActiveSearch] = useState<string | null>(null)
+
   const [dragX, setDragX] = useState(0)
 
   const sliderRef = useRef<HTMLDivElement | null>(null)
@@ -63,9 +68,22 @@ export default function Home() {
   useEffect(() => {
     const loadLocations = async () => {
       try {
-        console.log("🚀 fetch start", activeCategory)
+        console.log("🚀 fetch start", { search, activeCategory })
 
-        // 👉 pokud je vybraná kategorie
+        // 🔥 1️⃣ SEARCH má nejvyšší prioritu
+        if (search.trim().length > 0) {
+          const data = await getLocations(undefined, search)
+
+          const mapped = data.locations.map((loc) => ({
+            ...loc,
+            images: [loc.imageUrl]
+          }))
+
+          setLocations(mapped)
+          return
+        }
+
+        // 🔥 2️⃣ CATEGORY
         if (activeCategory) {
           const data = await getLocations(activeCategory)
 
@@ -78,7 +96,7 @@ export default function Home() {
           return
         }
 
-        // 👉 jinak načti všechno (tvůj ALL useEffect)
+        // 🔥 3️⃣ ALL (fallback)
         const categories = await getCategories()
 
         const requests = categories.map((cat) =>
@@ -104,7 +122,7 @@ export default function Home() {
     }
 
     loadLocations()
-  }, [activeCategory])
+  }, [activeCategory, search])
 
   useEffect(() => {
     const stored = localStorage.getItem('favorites')
@@ -310,7 +328,15 @@ export default function Home() {
     <main className="app-container">
 
       <div className="top-search">
-        <input placeholder="Hledat podnik..." />
+        <input
+          placeholder="Hledat podnik..."
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value)
+            setIndex(0)
+            setImgIndex(0)
+          }}
+        />
       </div>
 
       <div className="category-wrapper">
