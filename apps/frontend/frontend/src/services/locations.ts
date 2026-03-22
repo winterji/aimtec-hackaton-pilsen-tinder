@@ -1,12 +1,12 @@
 import { api } from './api';
-import { Location } from '@/types';
+import { Location, LocationResponse } from '@/types';
 
 /**
  * Získá seznam lokací. 
  * Pokud je předáno categoryId, vrátí pouze lokace z této kategorie.
  * Pokud je předáno searchString, vrátí pouze lokace odpovídající vyhledávání.
  */
-export const getLocations = async (categoryId?: string, searchString?: string): Promise<Location[]> => {
+export const getLocations = async (categoryId?: string, searchString?: string): Promise<LocationResponse> => {
     // Sestavení query parametrů: /api/locations?categoryId=pamatky nebo /api/locations?searchString=hrad
     const params: Record<string, string> = {};
     if (categoryId) params.categoryId = categoryId;
@@ -17,8 +17,13 @@ export const getLocations = async (categoryId?: string, searchString?: string): 
     }
     
     const config = Object.keys(params).length > 0 ? { params } : {};
-    const response = await api.get<Location[]>('/locations', config);
-    return response.data;
+    const response = await api.get<LocationResponse[]>('/locations', config);
+    return response.data[0];
+
+    
+    
+
+
 };
 
 // /**

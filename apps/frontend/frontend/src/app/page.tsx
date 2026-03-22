@@ -4,34 +4,29 @@ import { useState, useRef, useEffect } from 'react'
 import '../styles.css'
 
 import { getCategories } from "@/services/categories"
-import { TestingComponent } from '@/components/TestingComponent';
+import { getPhoto } from "@/services/photos"
+import { getLocations } from "@/services/locations"
+import type { Location } from "@/types/index"
 
+import { useRouter } from 'next/navigation'
 
-const places = [
-  {
-    name: 'Kavárna 1',
-    description: 'Stylová kavárna v centru Plzně',
-    hours: '8:00 - 20:00',
-    images: [
-      'https://picsum.photos/500/800?1',
-      'https://picsum.photos/500/800?2'
-    ]
-  },
-  {
-    name: 'Park 1',
-    description: 'Velký park ideální na relax',
-    hours: 'nonstop',
-    images: [
-      'https://picsum.photos/500/800?3',
-      'https://picsum.photos/500/800?4'
-    ]
-  }
-]
+type LocationWithImages = Location & {
+  images: string[]
+}
+
 
 export default function Home() {
+
+  const router = useRouter()
+
   const [index, setIndex] = useState(0)
   const [imgIndex, setImgIndex] = useState(0)
   const [flipped, setFlipped] = useState(false)
+
+  const [search, setSearch] = useState('')
+
+  const [searchInput, setSearchInput] = useState('')
+  const [activeSearch, setActiveSearch] = useState<string | null>(null)
 
   const [dragX, setDragX] = useState(0)
 
@@ -39,10 +34,148 @@ export default function Home() {
   const startX = useRef(0)
   const isDragging = useRef(false)
   const isClickOnButton = useRef(false)
+  const [locations, setLocations] = useState<LocationWithImages[]>([])
 
-  const place = places[index]
+
+  const [activeCategory, setActiveCategory] = useState<string | null>(null)
+
+  const [favorites, setFavorites] = useState<Location[]>(() => {
+    if (typeof window === 'undefined') return []
+    const stored = localStorage.getItem('favorites')
+    return stored ? JSON.parse(stored) : []
+  })
+
+  const place = locations[index] || locations[0]
+
+  const handleCategoryClick = (id: string) => {
+    setIndex(0) // reset swipe
+    setImgIndex(0)
+
+    setActiveCategory((prev) => (prev === id ? null : id))
+  }
+    
+
+  const isFavorite = place
+  ? favorites.some((l) => l.id === place.id)
+  : false
+
+  
+
+  
 
   const [categories, setCategories] = useState<any[]>([])
+
+  useEffect(() => {
+    const loadLocations = async () => {
+      try {
+        console.log("🚀 fetch start", { activeSearch, activeCategory })
+
+        // 🔍 SEARCH
+        if (activeSearch) {
+          const data = await getLocations(undefined, activeSearch)
+
+          const mapped = data.locations.map((loc) => ({
+            ...loc,
+            images: [loc.imageUrl]
+          }))
+
+          setLocations(mapped)
+          return
+        }
+
+        // 🏷 CATEGORY
+        if (activeCategory) {
+          const data = await getLocations(activeCategory)
+
+          const mapped = data.locations.map((loc) => ({
+            ...loc,
+            images: [loc.imageUrl]
+          }))
+
+          setLocations(mapped)
+          return
+        }
+
+        // 🌍 ALL
+        const categories = await getCategories()
+
+        const requests = categories.map((cat) =>
+          getLocations(cat.id)
+        )
+
+        const results = await Promise.all(requests)
+
+        const allLocations = results
+          .filter((res) => res?.locations?.length)
+          .flatMap((res) => res.locations)
+
+        const mapped = allLocations.map((loc) => ({
+          ...loc,
+          images: [loc.imageUrl]
+        }))
+
+        setLocations(mapped)
+
+      } catch (err) {
+        console.error("❌ ERROR:", err)
+      }
+    }
+
+    loadLocations()
+  }, [activeCategory, activeSearch])
+
+  useEffect(() => {
+    const stored = localStorage.getItem('favorites')
+    if (stored) {
+      setFavorites(JSON.parse(stored))
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('favorites', JSON.stringify(favorites))
+  }, [favorites])
+
+  useEffect(() => {
+    const loadAllLocations = async () => {
+      try {
+        console.log("🚀 fetch ALL start")
+
+        // 1️⃣ načti kategorie
+        const categories = await getCategories()
+        console.log("📂 categories:", categories)
+
+        // 2️⃣ fetch pro každou kategorii
+        const requests = categories.map((cat) =>
+          getLocations(cat.id)
+        )
+
+        const results = await Promise.all(requests)
+        console.log("📦 all responses:", results)
+
+        // 3️⃣ vyber jen locations (některé mohou být prázdné!)
+        const allLocations = results
+          .filter((res) => res && res.locations && res.locations.length > 0)
+          .flatMap((res) => res.locations)
+
+        // 4️⃣ mapování (NEPŘIDÁVÁME baseURL!)
+        const mapped = allLocations.map((loc) => ({
+          ...loc,
+          images: [loc.imageUrl] // 👉 přesně jak backend vrací
+        }))
+
+        console.log("✅ final mapped:", mapped)
+
+        setLocations(mapped)
+
+      } catch (err) {
+        console.error("❌ ERROR:", err)
+      }
+    }
+
+    loadAllLocations()
+  }, [])
+
+  
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -105,6 +238,8 @@ export default function Home() {
     }
   }, [])
 
+  
+
   // 👉 SWIPE + CLICK
   const handlePointerDown = (e: React.PointerEvent) => {
     isDragging.current = true
@@ -152,7 +287,7 @@ export default function Home() {
     if (delta < -swipeThreshold) {
       setDragX(-500)
       setTimeout(() => {
-        setIndex((i) => Math.min(i + 1, places.length - 1))
+        setIndex((i) => Math.min(i + 1, locations.length - 1))
         setImgIndex(0)
         setFlipped(false)
         setDragX(0)
@@ -172,110 +307,171 @@ export default function Home() {
     }
   }
 
+  
+
+
+  const toggleFavorite = (location: Location) => {
+    setFavorites((prev) => {
+      const exists = prev.find((l) => l.id === location.id)
+
+      if (exists) {
+        return prev.filter((l) => l.id !== location.id)
+      } else {
+        return [...prev, location]
+      }
+    })
+  }
+
+  
+
   return (
     <main className="app-container">
 
       <div className="top-search">
-        <input placeholder="Hledat podnik..." />
-      </div>
+        <input
+          placeholder="Hledat podnik..."
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+        />
 
-      <TestingComponent />
+        <button
+          onClick={() => {
+            if (activeSearch) {
+              // ❌ SMAZAT
+              setActiveSearch(null)
+              setSearchInput('')
+            } else {
+              // 🔍 HLEDAT
+              if (searchInput.trim().length > 0) {
+                setActiveSearch(searchInput.trim())
+                setActiveCategory(null) // reset category
+              }
+            }
+
+            setIndex(0)
+            setImgIndex(0)
+          }}
+        >
+          {activeSearch ? 'Smazat' : 'Hledat'}
+        </button>
+      </div>
 
       <div className="category-wrapper">
         <div className="category-bar" ref={sliderRef}>
           <div className="category-inner">
             {categories.map((c) => (
-              <button key={c.id}>{c.name}</button>
+              <button
+                key={c.id}
+                onClick={() => handleCategoryClick(c.id)}
+                className={activeCategory === c.id ? 'active' : ''}
+              >
+                {c.name}
+              </button>
             ))}
           </div>
         </div>
       </div>
 
       <div className="card-wrapper">
-        <div
-          className="card"
-          style={{
-            transform: `translateX(${dragX}px) rotate(${dragX * 0.05}deg)`,
-            transition: isDragging.current ? 'none' : 'transform 0.3s ease'
-          }}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerLeave={handlePointerUp}
-        >
-
+        {locations.length === 0 ? (
+          <div style={{ padding: 20 }}>Načítám...</div>
+        ) : (
           <div
-            className="card-front"
-            style={{ backgroundImage: `url(${place.images[imgIndex]})` }}
+            className="card"
+            style={{
+              transform: `translateX(${dragX}px) rotate(${dragX * 0.05}deg)`,
+              transition: isDragging.current ? 'none' : 'transform 0.3s ease'
+            }}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerLeave={handlePointerUp}
           >
 
-            {/* TITLE */}
-            <div className="card-title-wrapper">
-              <div className="card-title">{place.name}</div>
-            </div>
+            <div
+              className="card-front"
+              style={{ backgroundImage: `url(http://13.51.36.227:3000${place.images[imgIndex]})` }}
+            >
 
-            {/* 👉 INFO OVERLAY */}
-            {flipped && (
-              <div
-                className="info-overlay"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setFlipped(false)
-                }}
-              >
-                <div className="info-content">
-                  <h2>{place.name}</h2>
-                  <p>{place.description}</p>
-                  <p>{place.hours}</p>
-                </div>
-              </div>
-            )}
-
-            {/* BOTTOM */}
-            <div className="card-bottom">
-              <div className="dots">
-                {place.images.map((_, i) => (
-                  <div key={i} className={`dot ${i === imgIndex ? 'active' : ''}`} />
-                ))}
+              {/* TITLE */}
+              <div className="card-title-wrapper">
+                <div className="card-title">{place.name}</div>
               </div>
 
-              <div className="actions">
-                <button
-                  onPointerDown={(e) => {
-                    isClickOnButton.current = true
-                    e.stopPropagation()
-                  }}
+              {/* 👉 INFO OVERLAY */}
+              {flipped && (
+                <div
+                  className="info-overlay"
                   onClick={(e) => {
                     e.stopPropagation()
-                    console.log('like ❤️')
+                    setFlipped(false)
                   }}
                 >
-                  ❤️
-                </button>
+                  <div className="info-content">
+                    <h2 className="info-content-item">{place.name}</h2>
+                    <p className="info-content-item">{place.description}</p>
+                    <p className="info-content-item">{place.address}</p>
+                  </div>
+                </div>
+              )}
 
-                <div className="right-actions">
+              {/* BOTTOM */}
+              <div className="card-bottom">
+                <div className="dots">
+                  {place.images.length > 1 && (
+                    <div className="dots">
+                      {place.images.map((_, i) => (
+                        <div
+                          key={i}
+                          className={`dot ${i === imgIndex ? 'active' : ''}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="actions">
                   <button
+                    className={isFavorite ? 'active-like' : ''}
                     onPointerDown={(e) => {
                       isClickOnButton.current = true
                       e.stopPropagation()
                     }}
                     onClick={(e) => {
                       e.stopPropagation()
-                      setFlipped(true)
+                      toggleFavorite(place)
                     }}
                   >
-                    ℹ️
+                    ❤️
                   </button>
+
+                  <div className="right-actions">
+                    <button
+                      onPointerDown={(e) => {
+                        isClickOnButton.current = true
+                        e.stopPropagation()
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setFlipped(true)
+                      }}
+                    >
+                      ℹ️
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
 
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="bottom-bar">
-        <button>+ Přidat do tripu</button>
+        <button onClick={() => router.push('/favorites')}>
+          Zobrazit oblíbené lokace
+        </button>
+        
       </div>
 
     </main>
