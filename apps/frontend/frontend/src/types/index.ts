@@ -27,6 +27,11 @@ export interface Location {
   coordinates: Coordinates;
 }
 
+export interface LocationResponse {
+  session_id: number;
+  locations: Location[];
+}
+
 // ==========================================
 // ADMIN MODELY (Odesílání do API - POST/Upsert)
 // ==========================================

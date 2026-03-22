@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import '../styles.css'
 
 import { getCategories } from "@/services/categories"
+import { getPhoto } from "@/services/photos"
 import { getLocations } from "@/services/locations"
 import type { Location } from "@/types/index"
 
@@ -71,7 +72,7 @@ export default function Home() {
         const data = await getLocations("kavarny")
         console.log("📦 raw data:", data)
 
-        const mapped = data.map((loc) => ({
+        const mapped = data.locations.map((loc) => ({
           ...loc,
           images: [loc.imageUrl]
         }))
@@ -272,7 +273,7 @@ export default function Home() {
 
             <div
               className="card-front"
-              style={{ backgroundImage: `url(${place.images[imgIndex]})` }}
+              style={{ backgroundImage: `url(http://13.51.36.227:3000${place.images[imgIndex]})` }}
             >
 
               {/* TITLE */}
