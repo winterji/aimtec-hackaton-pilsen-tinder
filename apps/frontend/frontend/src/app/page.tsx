@@ -68,11 +68,11 @@ export default function Home() {
   useEffect(() => {
     const loadLocations = async () => {
       try {
-        console.log("🚀 fetch start", { search, activeCategory })
+        console.log("🚀 fetch start", { activeSearch, activeCategory })
 
-        // 🔥 1️⃣ SEARCH má nejvyšší prioritu
-        if (search.trim().length > 0) {
-          const data = await getLocations(undefined, search)
+        // 🔍 SEARCH
+        if (activeSearch) {
+          const data = await getLocations(undefined, activeSearch)
 
           const mapped = data.locations.map((loc) => ({
             ...loc,
@@ -83,7 +83,7 @@ export default function Home() {
           return
         }
 
-        // 🔥 2️⃣ CATEGORY
+        // 🏷 CATEGORY
         if (activeCategory) {
           const data = await getLocations(activeCategory)
 
@@ -96,7 +96,7 @@ export default function Home() {
           return
         }
 
-        // 🔥 3️⃣ ALL (fallback)
+        // 🌍 ALL
         const categories = await getCategories()
 
         const requests = categories.map((cat) =>
@@ -122,7 +122,7 @@ export default function Home() {
     }
 
     loadLocations()
-  }, [activeCategory, search])
+  }, [activeCategory, activeSearch])
 
   useEffect(() => {
     const stored = localStorage.getItem('favorites')
@@ -330,13 +330,30 @@ export default function Home() {
       <div className="top-search">
         <input
           placeholder="Hledat podnik..."
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value)
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+        />
+
+        <button
+          onClick={() => {
+            if (activeSearch) {
+              // ❌ SMAZAT
+              setActiveSearch(null)
+              setSearchInput('')
+            } else {
+              // 🔍 HLEDAT
+              if (searchInput.trim().length > 0) {
+                setActiveSearch(searchInput.trim())
+                setActiveCategory(null) // reset category
+              }
+            }
+
             setIndex(0)
             setImgIndex(0)
           }}
-        />
+        >
+          {activeSearch ? 'Smazat' : 'Hledat'}
+        </button>
       </div>
 
       <div className="category-wrapper">
@@ -391,9 +408,9 @@ export default function Home() {
                   }}
                 >
                   <div className="info-content">
-                    <h2>{place.name}</h2>
-                    <p>{place.description}</p>
-                    <p>{place.address}</p>
+                    <h2 className="info-content-item">{place.name}</h2>
+                    <p className="info-content-item">{place.description}</p>
+                    <p className="info-content-item">{place.address}</p>
                   </div>
                 </div>
               )}
@@ -454,6 +471,7 @@ export default function Home() {
         <button onClick={() => router.push('/favorites')}>
           Zobrazit oblíbené lokace
         </button>
+        
       </div>
 
     </main>

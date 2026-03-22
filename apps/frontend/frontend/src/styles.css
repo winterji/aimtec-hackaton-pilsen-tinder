@@ -395,9 +395,9 @@
 }
 
 .info-name{
-   margin: 0;
+  margin: 0;
   font-size: 16px;
-  color: #ffffff;
+  color: #000000;
   font-weight: 600;
 
 }
@@ -479,4 +479,26 @@ p {
 .favorite-remove:hover {
   transform: scale(1.15);
   background: rgba(255, 77, 109, 0.3);
+}
+
+
+.top-search {
+  display: flex;
+  gap: 8px;
+}
+
+.top-search button {
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: none;
+  background: #ff4d6d;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.info-content-item{
+    color: white;
+
+
 }
