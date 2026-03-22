@@ -31,6 +31,9 @@ export default function Home() {
   const isClickOnButton = useRef(false)
   const [locations, setLocations] = useState<LocationWithImages[]>([])
 
+
+  const [activeCategory, setActiveCategory] = useState<string | null>(null)
+
   const [favorites, setFavorites] = useState<Location[]>(() => {
     if (typeof window === 'undefined') return []
     const stored = localStorage.getItem('favorites')
@@ -39,7 +42,13 @@ export default function Home() {
 
   const place = locations[index] || locations[0]
 
-  
+  const handleCategoryClick = (id: string) => {
+    setIndex(0) // reset swipe
+    setImgIndex(0)
+
+    setActiveCategory((prev) => (prev === id ? null : id))
+  }
+    
 
   const isFavorite = place
   ? favorites.some((l) => l.id === place.id)
@@ -51,7 +60,51 @@ export default function Home() {
 
   const [categories, setCategories] = useState<any[]>([])
 
-  
+  useEffect(() => {
+    const loadLocations = async () => {
+      try {
+        console.log("🚀 fetch start", activeCategory)
+
+        // 👉 pokud je vybraná kategorie
+        if (activeCategory) {
+          const data = await getLocations(activeCategory)
+
+          const mapped = data.locations.map((loc) => ({
+            ...loc,
+            images: [loc.imageUrl]
+          }))
+
+          setLocations(mapped)
+          return
+        }
+
+        // 👉 jinak načti všechno (tvůj ALL useEffect)
+        const categories = await getCategories()
+
+        const requests = categories.map((cat) =>
+          getLocations(cat.id)
+        )
+
+        const results = await Promise.all(requests)
+
+        const allLocations = results
+          .filter((res) => res?.locations?.length)
+          .flatMap((res) => res.locations)
+
+        const mapped = allLocations.map((loc) => ({
+          ...loc,
+          images: [loc.imageUrl]
+        }))
+
+        setLocations(mapped)
+
+      } catch (err) {
+        console.error("❌ ERROR:", err)
+      }
+    }
+
+    loadLocations()
+  }, [activeCategory])
 
   useEffect(() => {
     const stored = localStorage.getItem('favorites')
@@ -65,19 +118,34 @@ export default function Home() {
   }, [favorites])
 
   useEffect(() => {
-    const loadLocations = async () => {
+    const loadAllLocations = async () => {
       try {
-        console.log("🚀 fetch start")
+        console.log("🚀 fetch ALL start")
 
-        const data = await getLocations("kavarny")
-        console.log("📦 raw data:", data)
+        // 1️⃣ načti kategorie
+        const categories = await getCategories()
+        console.log("📂 categories:", categories)
 
-        const mapped = data.locations.map((loc) => ({
+        // 2️⃣ fetch pro každou kategorii
+        const requests = categories.map((cat) =>
+          getLocations(cat.id)
+        )
+
+        const results = await Promise.all(requests)
+        console.log("📦 all responses:", results)
+
+        // 3️⃣ vyber jen locations (některé mohou být prázdné!)
+        const allLocations = results
+          .filter((res) => res && res.locations && res.locations.length > 0)
+          .flatMap((res) => res.locations)
+
+        // 4️⃣ mapování (NEPŘIDÁVÁME baseURL!)
+        const mapped = allLocations.map((loc) => ({
           ...loc,
-          images: [loc.imageUrl]
+          images: [loc.imageUrl] // 👉 přesně jak backend vrací
         }))
 
-        console.log("✅ mapped:", mapped)
+        console.log("✅ final mapped:", mapped)
 
         setLocations(mapped)
 
@@ -86,7 +154,7 @@ export default function Home() {
       }
     }
 
-    loadLocations()
+    loadAllLocations()
   }, [])
 
   
@@ -249,7 +317,13 @@ export default function Home() {
         <div className="category-bar" ref={sliderRef}>
           <div className="category-inner">
             {categories.map((c) => (
-              <button key={c.id}>{c.name}</button>
+              <button
+                key={c.id}
+                onClick={() => handleCategoryClick(c.id)}
+                className={activeCategory === c.id ? 'active' : ''}
+              >
+                {c.name}
+              </button>
             ))}
           </div>
         </div>
