@@ -11,7 +11,7 @@ metadata:
     app.kubernetes.io/component: postgres
     app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
-  # Allow only the backend service-account's SPIFFE identity.
+  # Allow only the backend app service-account's SPIFFE identity.
   identities:
     - {{ printf "%s.%s.serviceaccount.cluster.local" (include "backend.serviceAccountName" .) .Release.Namespace | quote }}
 ---

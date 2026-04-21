@@ -27,6 +27,7 @@ spec:
         config.linkerd.io/opaque-ports: {{ .Values.postgres.service.port | quote }}
         {{- end }}
     spec:
+      serviceAccountName: {{ include "backend.postgresServiceAccountName" . }}
       containers:
         - name: postgres
           image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}"

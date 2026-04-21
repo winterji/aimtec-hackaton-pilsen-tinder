@@ -17,6 +17,7 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: {{ include "backend.name" . }}
+        app.kubernetes.io/component: app
         app.kubernetes.io/instance: {{ .Release.Name }}
       annotations:
         {{- if .Values.linkerd.enabled }}

@@ -27,6 +27,12 @@ database:
 
 postgres:
   enabled: true
+
+  serviceAccount:
+    create: true
+    # Defaults to <release>-backend-postgres if empty.
+    name: ""
+
   replicaCount: 1
   image:
     repository: postgres
