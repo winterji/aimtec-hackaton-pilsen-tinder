@@ -33,7 +33,10 @@ spec:
             - name: PORT
               value: {{ .Values.service.port | quote }}
             - name: JWT_SECRET
-              value: {{ .Values.env.jwtSecret | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "backend.fullname" . }}-app
+                  key: jwt-secret
             - name: GOOGLE_PLACES_API_KEY
               value: {{ .Values.env.googlePlacesApiKey | quote }}
             - name: DATABASE_URL

@@ -11,7 +11,7 @@ service:
 
 env:
   nodeEnv: production
-  jwtSecret: admin
+  jwtSecret: ""
   googlePlacesApiKey: ""
 
 postgres:
@@ -23,9 +23,9 @@ postgres:
   service:
     port: 5432
   auth:
-    username: app
-    password: app
-    database: appdb
+    username: ""
+    password: ""
+    database: ""
   persistence:
     enabled: true
     storageClass: ""
