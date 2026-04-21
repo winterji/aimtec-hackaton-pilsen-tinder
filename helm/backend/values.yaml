@@ -11,7 +11,7 @@ service:
 
 env:
   nodeEnv: production
-  # Required: set a strong random JWT secret (do not leave empty in production).
+  # Required: set a strong random JWT secret using --set/--set-file or external secret management.
   jwtSecret: ""
   # Treat as sensitive and prefer --set-file/secret management in production.
   googlePlacesApiKey: ""
@@ -29,7 +29,7 @@ postgres:
   service:
     port: 5432
   auth:
-    # Required: set strong custom credentials (do not leave empty in production).
+    # Required: set strong custom credentials using --set/--set-file or external secret management.
     username: ""
     password: ""
     database: ""

@@ -42,9 +42,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "backend.fullname" . }}-postgres
                   key: postgres-db
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           volumeMounts:
             - name: postgres-data
-              mountPath: /var/lib/postgresql/data
+              mountPath: /var/lib/postgresql/data/pgdata
       volumes:
         - name: postgres-data
           {{- if .Values.postgres.persistence.enabled }}
