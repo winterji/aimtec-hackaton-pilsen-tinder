@@ -46,7 +46,7 @@ spec:
               value: /var/lib/postgresql/data/pgdata
           volumeMounts:
             - name: postgres-data
-              mountPath: /var/lib/postgresql/data/pgdata
+              mountPath: /var/lib/postgresql/data
       volumes:
         - name: postgres-data
           {{- if .Values.postgres.persistence.enabled }}

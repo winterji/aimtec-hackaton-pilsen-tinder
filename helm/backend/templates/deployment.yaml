@@ -38,7 +38,10 @@ spec:
                   name: {{ include "backend.fullname" . }}-app
                   key: jwt-secret
             - name: GOOGLE_PLACES_API_KEY
-              value: {{ .Values.env.googlePlacesApiKey | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "backend.fullname" . }}-app
+                  key: google-places-api-key
             - name: DATABASE_URL
               {{- if .Values.postgres.enabled }}
               valueFrom:
