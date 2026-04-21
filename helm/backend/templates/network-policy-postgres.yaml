@@ -18,12 +18,17 @@ spec:
     - Ingress
     - Egress
   ingress:
-    # Only the backend app may reach postgres.
+    # Only the backend app pod (not postgres itself) may reach postgres.
     - from:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: {{ include "backend.name" . }}
               app.kubernetes.io/instance: {{ .Release.Name }}
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: NotIn
+                values:
+                  - postgres
       ports:
         - protocol: TCP
           port: {{ .Values.postgres.service.port }}
