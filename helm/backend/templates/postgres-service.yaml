@@ -6,6 +6,10 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ include "backend.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
+  {{- if .Values.linkerd.enabled }}
+  annotations:
+    config.linkerd.io/opaque-ports: {{ .Values.postgres.service.port | quote }}
+  {{- end }}
 spec:
   type: ClusterIP
   ports:

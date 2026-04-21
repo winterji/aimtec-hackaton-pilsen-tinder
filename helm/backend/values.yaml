@@ -5,15 +5,20 @@ image:
   tag: backend
   pullPolicy: IfNotPresent
 
+serviceAccount:
+  create: true
+  # Defaults to the chart fullname if empty.
+  name: ""
+
 service:
   type: ClusterIP
   port: 3000
 
 env:
   nodeEnv: production
-  # Required: set a strong random JWT secret using --set/--set-file or external secret management.
+  # Required: set a strong random JWT secret using --set-string or external secret management.
   jwtSecret: ""
-  # Treat as sensitive and prefer --set-file/secret management in production.
+  # Treat as sensitive and prefer --set-string or external secret management in production.
   googlePlacesApiKey: ""
 
 database:
@@ -30,7 +35,7 @@ postgres:
   service:
     port: 5432
   auth:
-    # Required: set strong custom credentials using --set/--set-file or external secret management.
+    # Required: set strong custom credentials using --set-string or external secret management.
     username: ""
     password: ""
     database: ""
@@ -40,5 +45,10 @@ postgres:
     enabled: true
     storageClass: ""
     size: 1Gi
+
+linkerd:
+  enabled: true
+  # Namespace where the Linkerd control-plane is installed.
+  controlPlaneNamespace: linkerd
 
 resources: {}

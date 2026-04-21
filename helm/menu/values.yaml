@@ -5,11 +5,20 @@ image:
   tag: menu
   pullPolicy: IfNotPresent
 
+serviceAccount:
+  create: true
+  name: ""
+
 service:
   type: ClusterIP
   port: 3003
 
 env:
   nextPublicApiUrl: "http://backend:3000/api"
+
+linkerd:
+  enabled: true
+  controlPlaneNamespace: linkerd
+  ingressNamespace: ingress-nginx
 
 resources: {}

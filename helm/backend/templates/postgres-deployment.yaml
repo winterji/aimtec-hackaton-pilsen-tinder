@@ -21,6 +21,11 @@ spec:
         app.kubernetes.io/name: {{ include "backend.name" . }}
         app.kubernetes.io/component: postgres
         app.kubernetes.io/instance: {{ .Release.Name }}
+      annotations:
+        {{- if .Values.linkerd.enabled }}
+        linkerd.io/inject: enabled
+        config.linkerd.io/opaque-ports: {{ .Values.postgres.service.port | quote }}
+        {{- end }}
     spec:
       containers:
         - name: postgres

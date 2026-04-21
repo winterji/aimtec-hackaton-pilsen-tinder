@@ -22,3 +22,11 @@
 {{- define "backend.postgresServiceName" -}}
 {{- printf "%s-postgres" (include "backend.fullname" .) -}}
 {{- end -}}
+
+{{- define "backend.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create -}}
+{{- default (include "backend.fullname" .) .Values.serviceAccount.name -}}
+{{- else -}}
+{{- default "default" .Values.serviceAccount.name -}}
+{{- end -}}
+{{- end -}}

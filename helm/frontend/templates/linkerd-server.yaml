@@ -1,0 +1,17 @@
+{{- if .Values.linkerd.enabled }}
+apiVersion: policy.linkerd.io/v1beta1
+kind: Server
+metadata:
+  name: {{ include "frontend.fullname" . }}-http
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "frontend.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "frontend.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  port: http
+  proxyProtocol: HTTP/1
+{{- end }}

@@ -18,3 +18,11 @@
 {{- define "admin.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+{{- define "admin.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create -}}
+{{- default (include "admin.fullname" .) .Values.serviceAccount.name -}}
+{{- else -}}
+{{- default "default" .Values.serviceAccount.name -}}
+{{- end -}}
+{{- end -}}
