@@ -40,9 +40,13 @@ spec:
             - name: GOOGLE_PLACES_API_KEY
               value: {{ .Values.env.googlePlacesApiKey | quote }}
             - name: DATABASE_URL
+              {{- if .Values.postgres.enabled }}
               valueFrom:
                 secretKeyRef:
                   name: {{ include "backend.fullname" . }}-postgres
                   key: database-url
+              {{- else }}
+              value: {{ required "database.url must be set when postgres.enabled=false" .Values.database.url | quote }}
+              {{- end }}
           resources:
 {{ toYaml .Values.resources | indent 12 }}
