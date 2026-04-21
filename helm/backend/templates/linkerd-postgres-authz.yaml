@@ -11,10 +11,9 @@ metadata:
     app.kubernetes.io/component: postgres
     app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
-  identityRefs:
-    - kind: ServiceAccount
-      name: {{ include "backend.serviceAccountName" . }}
-      namespace: {{ .Release.Namespace }}
+  # Allow only the backend service-account's SPIFFE identity.
+  identities:
+    - {{ printf "%s.%s.serviceaccount.cluster.local" (include "backend.serviceAccountName" .) .Release.Namespace | quote }}
 ---
 apiVersion: policy.linkerd.io/v1alpha1
 kind: AuthorizationPolicy
