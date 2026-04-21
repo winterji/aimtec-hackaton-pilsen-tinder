@@ -33,6 +33,8 @@ postgres:
     username: ""
     password: ""
     database: ""
+    # Required for backend connection when postgres.enabled=true. Prefer --set-string or external secret management.
+    databaseUrl: ""
   persistence:
     enabled: true
     storageClass: ""
