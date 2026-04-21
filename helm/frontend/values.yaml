@@ -1,0 +1,15 @@
+replicaCount: 1
+
+image:
+  repository: jiwi/objevplzen
+  tag: frontend
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 3002
+
+env:
+  nextPublicApiUrl: "http://backend:3000/api"
+
+resources: {}

@@ -1,0 +1,34 @@
+replicaCount: 1
+
+image:
+  repository: jiwi/objevplzen
+  tag: backend
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 3000
+
+env:
+  nodeEnv: production
+  jwtSecret: admin
+  googlePlacesApiKey: ""
+
+postgres:
+  enabled: true
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+  service:
+    port: 5432
+  auth:
+    username: app
+    password: app
+    database: appdb
+  persistence:
+    enabled: true
+    storageClass: ""
+    size: 1Gi
+
+resources: {}
