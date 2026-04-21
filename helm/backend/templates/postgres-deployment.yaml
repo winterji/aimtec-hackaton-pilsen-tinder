@@ -1,6 +1,6 @@
 {{- if .Values.postgres.enabled }}
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "backend.postgresServiceName" . }}
   labels:
@@ -8,7 +8,8 @@ metadata:
     app.kubernetes.io/component: postgres
     app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.postgres.replicaCount }}
+  serviceName: {{ include "backend.postgresServiceName" . }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "backend.name" . }}
