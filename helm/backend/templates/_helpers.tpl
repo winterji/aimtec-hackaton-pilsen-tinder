@@ -1,0 +1,40 @@
+{{- define "backend.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "backend.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "backend.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "backend.postgresServiceName" -}}
+{{- printf "%s-postgres" (include "backend.fullname" .) -}}
+{{- end -}}
+
+{{- define "backend.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create -}}
+{{- default (include "backend.fullname" .) .Values.serviceAccount.name -}}
+{{- else -}}
+{{- default "default" .Values.serviceAccount.name -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "backend.postgresServiceAccountName" -}}
+{{- if .Values.postgres.serviceAccount.create -}}
+{{- default (include "backend.postgresServiceName" .) .Values.postgres.serviceAccount.name -}}
+{{- else -}}
+{{- default "default" .Values.postgres.serviceAccount.name -}}
+{{- end -}}
+{{- end -}}

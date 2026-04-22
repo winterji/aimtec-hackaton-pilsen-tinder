@@ -1,0 +1,36 @@
+{{- if and .Values.linkerd.enabled .Values.postgres.enabled }}
+---
+# Only the backend service account may reach postgres.
+apiVersion: policy.linkerd.io/v1alpha1
+kind: MeshTLSAuthentication
+metadata:
+  name: {{ include "backend.postgresServiceName" . }}-authn
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "backend.name" . }}
+    app.kubernetes.io/component: postgres
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  # Allow only the backend app service-account's SPIFFE identity.
+  identities:
+    - {{ printf "%s.%s.serviceaccount.cluster.local" (include "backend.serviceAccountName" .) .Release.Namespace | quote }}
+---
+apiVersion: policy.linkerd.io/v1alpha1
+kind: AuthorizationPolicy
+metadata:
+  name: {{ include "backend.postgresServiceName" . }}-allow-backend
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "backend.name" . }}
+    app.kubernetes.io/component: postgres
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  targetRef:
+    group: policy.linkerd.io
+    kind: Server
+    name: {{ include "backend.postgresServiceName" . }}
+  requiredAuthenticationRefs:
+    - group: policy.linkerd.io
+      kind: MeshTLSAuthentication
+      name: {{ include "backend.postgresServiceName" . }}-authn
+{{- end }}

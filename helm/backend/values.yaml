@@ -1,0 +1,60 @@
+replicaCount: 1
+
+image:
+  repository: jiwi/objevplzen
+  tag: backend
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+  # Defaults to the chart fullname if empty.
+  name: ""
+
+service:
+  type: ClusterIP
+  port: 3000
+
+env:
+  nodeEnv: production
+  # Required: set a strong random JWT secret using --set-string or external secret management.
+  jwtSecret: ""
+  # Treat as sensitive and prefer --set-string or external secret management in production.
+  googlePlacesApiKey: ""
+
+database:
+  # Required when postgres.enabled=false.
+  url: ""
+
+postgres:
+  enabled: true
+
+  serviceAccount:
+    create: true
+    # Defaults to <release>-backend-postgres if empty.
+    name: ""
+
+  replicaCount: 1
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+  service:
+    port: 5432
+  auth:
+    # Required: set strong custom credentials using --set-string or external secret management.
+    username: ""
+    password: ""
+    database: ""
+    # Required for backend connection when postgres.enabled=true. Prefer --set-string or external secret management.
+    databaseUrl: ""
+  persistence:
+    enabled: true
+    storageClass: ""
+    size: 1Gi
+
+linkerd:
+  enabled: true
+  # Namespace where the Linkerd control-plane is installed.
+  controlPlaneNamespace: linkerd
+
+resources: {}
