@@ -31,9 +31,9 @@ postgres:
     port: 5432
   auth:
     # Required: set strong custom credentials using --set/--set-file or external secret management.
-    username: ""
-    password: ""
-    database: ""
+    username: "postgres"
+    password: "postgres"
+    database: "tinder"
     # Required for backend connection when postgres.enabled=true. Prefer --set-string or external secret management.
     databaseUrl: ""
   persistence:

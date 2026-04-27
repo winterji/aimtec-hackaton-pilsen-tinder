@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: jiwi/objevplzen
-  tag: frontend
+  tag: frontend-amd
   pullPolicy: IfNotPresent
 
 service:
