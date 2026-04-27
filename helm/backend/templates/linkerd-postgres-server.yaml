@@ -1,0 +1,20 @@
+{{- if and .Values.linkerd.enabled .Values.postgres.enabled }}
+apiVersion: policy.linkerd.io/v1beta1
+kind: Server
+metadata:
+  name: {{ include "backend.postgresServiceName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "backend.name" . }}
+    app.kubernetes.io/component: postgres
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "backend.name" . }}
+      app.kubernetes.io/component: postgres
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  port: postgres
+  # Postgres uses the binary protocol; Linkerd treats it as opaque TCP.
+  proxyProtocol: opaque
+{{- end }}

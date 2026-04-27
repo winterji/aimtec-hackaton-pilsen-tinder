@@ -18,3 +18,11 @@
 {{- define "menu.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+{{- define "menu.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create -}}
+{{- default (include "menu.fullname" .) .Values.serviceAccount.name -}}
+{{- else -}}
+{{- default "default" .Values.serviceAccount.name -}}
+{{- end -}}
+{{- end -}}

@@ -18,7 +18,12 @@ spec:
       labels:
         app.kubernetes.io/name: {{ include "admin.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
+      annotations:
+        {{- if .Values.linkerd.enabled }}
+        linkerd.io/inject: enabled
+        {{- end }}
     spec:
+      serviceAccountName: {{ include "admin.serviceAccountName" . }}
       containers:
         - name: admin
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

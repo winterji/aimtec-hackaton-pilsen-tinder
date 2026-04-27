@@ -1,0 +1,69 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "backend.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "backend.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "backend.name" . }}
+      app.kubernetes.io/component: app
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Accept HTTP traffic from frontend, admin, and menu pods in the same namespace.
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: frontend
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: admin
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: menu
+      ports:
+        - protocol: TCP
+          port: {{ .Values.service.port }}
+    # Allow Linkerd control-plane namespace ingress (health probes, viz).
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.linkerd.controlPlaneNamespace }}
+    # Allow kubelet probes on the Linkerd admin port (port 4191).
+    - ports:
+        - protocol: TCP
+          port: 4191
+  egress:
+    # Allow DNS resolution.
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow connection to the in-cluster postgres.
+    {{- if .Values.postgres.enabled }}
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ include "backend.name" . }}
+              app.kubernetes.io/component: postgres
+              app.kubernetes.io/instance: {{ .Release.Name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.postgres.service.port }}
+    {{- end }}
+    # Allow Linkerd control-plane communication (destination, identity, policy).
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.linkerd.controlPlaneNamespace }}
+    # Allow HTTPS egress for external APIs (e.g. Google Places).
+    - ports:
+        - protocol: TCP
+          port: 443

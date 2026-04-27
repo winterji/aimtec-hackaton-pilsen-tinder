@@ -17,8 +17,14 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: {{ include "backend.name" . }}
+        app.kubernetes.io/component: app
         app.kubernetes.io/instance: {{ .Release.Name }}
+      annotations:
+        {{- if .Values.linkerd.enabled }}
+        linkerd.io/inject: enabled
+        {{- end }}
     spec:
+      serviceAccountName: {{ include "backend.serviceAccountName" . }}
       containers:
         - name: backend
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

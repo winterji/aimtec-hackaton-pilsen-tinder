@@ -18,7 +18,12 @@ spec:
       labels:
         app.kubernetes.io/name: {{ include "menu.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
+      annotations:
+        {{- if .Values.linkerd.enabled }}
+        linkerd.io/inject: enabled
+        {{- end }}
     spec:
+      serviceAccountName: {{ include "menu.serviceAccountName" . }}
       containers:
         - name: menu
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

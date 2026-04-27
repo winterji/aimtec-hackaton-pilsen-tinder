@@ -5,11 +5,21 @@ image:
   tag: frontend-amd
   pullPolicy: IfNotPresent
 
+serviceAccount:
+  create: true
+  name: ""
+
 service:
   type: ClusterIP
   port: 3002
 
 env:
   nextPublicApiUrl: "http://backend:3000/api"
+
+linkerd:
+  enabled: true
+  controlPlaneNamespace: linkerd
+  # Namespace of the ingress controller (traffic from here is allowed to reach this service).
+  ingressNamespace: ingress-nginx
 
 resources: {}
